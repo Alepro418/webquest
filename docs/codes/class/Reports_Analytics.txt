@@ -1,0 +1,190 @@
+@startuml
+title Diagrama de Clases - Módulo de Reportes y Estadísticas
+
+' ==============================================
+' ENUMS
+' ==============================================
+enum TipoReporte {
+    GENERAL_COHORTE
+    INDIVIDUAL
+    POR_ASIGNATURA
+    ENTREGAS
+    ESTATUS_MOTIVACIONAL
+    RENDIMIENTO
+}
+
+enum FormatoReporte {
+    PDF
+    EXCEL
+    CSV
+    HTML
+    JSON
+}
+
+enum PeriodoReporte {
+    DIARIO
+    SEMANAL
+    MENSUAL
+    TRIMESTRAL
+    ANUAL
+    PERSONALIZADO
+}
+
+' ==============================================
+' CLASES PRINCIPALES
+' ==============================================
+class Reporte {
+    - id_reporte: int
+    - id_docente: int
+    - tipo: TipoReporte
+    - titulo: string
+    - descripcion: string
+    - parametros: JSON
+    - datos_generados: JSON
+    - fecha_solicitud: datetime
+    - fecha_generacion: datetime
+    - formato: FormatoReporte
+    - url_archivo: string
+    - programado: boolean
+    + generar(): boolean
+    + exportar(formato): File
+    + programar(periodo): void
+    + enviarPorEmail(destinatario): boolean
+    + obtenerVistaPrevia(): string
+}
+
+class Estadistica {
+    - id_estadistica: int
+    - tipo: string
+    - fecha_calculo: datetime
+    - valores: JSON
+    - metricas: Array
+    + calcularPromedio(): float
+    + calcularMediana(): float
+    + calcularModa(): Array
+    + calcularDesviacion(): float
+    + obtenerTendencia(): string
+}
+
+class Dashboard {
+    - id_dashboard: int
+    - id_docente: int
+    - widgets: Array
+    - configuracion: JSON
+    - ultima_actualizacion: datetime
+    + agregarWidget(widget): void
+    + eliminarWidget(id): void
+    + reordenarWidgets(orden): void
+    + refrescarDatos(): void
+    + exportarSnapshot(): Image
+}
+
+class Widget {
+    - id_widget: int
+    - tipo: string (grafico, tabla, contador, alerta)
+    - titulo: string
+    - datos: JSON
+    - tamaño: string (pequeño, mediano, grande)
+    - posicion: int
+    - configuracion: JSON
+    + actualizarDatos(): void
+    + renderizar(): string
+    + exportar(): Image
+}
+
+class Metrica {
+    - id_metrica: int
+    - nombre: string
+    - valor: float
+    - unidad: string
+    - tendencia: string
+    - umbral_alerta: float
+    - color_indicador: string
+    + compararConUmbral(): string
+    + obtenerIcono(): string
+}
+
+' ==============================================
+' CONTROLADORES
+' ==============================================
+class ReporteController {
+    - reporteModel: ReporteModel
+    - estadisticaModel: EstadisticaModel
+    + index(): Response
+    + show(id): Response
+    + create(): Response
+    + store(request): Response
+    + generar(tipo, parametros): Response
+    + descargar(id, formato): Response
+    + programar(request): Response
+    + listarProgramados(): Response
+    + cancelarProgramacion(id): Response
+}
+
+class DashboardController {
+    - dashboardModel: DashboardModel
+    - estadisticaModel: EstadisticaModel
+    + index(): Response
+    + configurar(): Response
+    + agregarWidget(request): Response
+    + eliminarWidget(id): Response
+    + reordenar(request): Response
+    + refrescar(): Response
+    + exportar(): Response
+}
+
+class EstadisticaController {
+    - estadisticaModel: EstadisticaModel
+    + calcularMetricasGenerales(): Response
+    + calcularRendimientoPorGrado(): Response
+    + calcularDistribucionEstatus(): Response
+    + calcularTendenciaEntregas(): Response
+    + exportarMetricas(formato): Response
+}
+
+' ==============================================
+' VISTAS
+' ==============================================
+class ReporteView {
+    + renderList(reportes): string
+    + renderForm(tipos): string
+    + renderResultado(reporte): string
+    + renderVistaPrevia(datos): string
+    + renderProgramacion(): string
+}
+
+class DashboardView {
+    + render(dashboard): string
+    + renderWidget(widget): string
+    + renderConfiguracion(): string
+    + renderMetricas(metricas): string
+}
+
+class GraficoView {
+    + renderBarras(datos, titulo): string
+    + renderLineas(datos, titulo): string
+    + renderPastel(datos, titulo): string
+    + renderArea(datos, titulo): string
+    + exportarGrafico(): Image
+}
+
+' ==============================================
+' RELACIONES
+' ==============================================
+Reporte "1" -- "0..*" Estadistica : contiene
+Dashboard "1" -- "0..*" Widget : posee
+Widget "1" -- "0..*" Metrica : muestra
+
+ReporteController --> Reporte
+ReporteController --> Estadistica
+
+DashboardController --> Dashboard
+DashboardController --> Widget
+
+EstadisticaController --> Estadistica
+
+ReporteView --> ReporteController
+DashboardView --> DashboardController
+GraficoView --> EstadisticaController
+
+@enduml

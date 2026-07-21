@@ -1,0 +1,56 @@
+@startuml
+title Secuencia: Inicio de Sesión
+
+actor Usuario as U
+participant "Vista Login" as V
+participant "AuthController" as C
+participant "UsuarioModel" as M
+participant "Sesion" as S
+database "Base de Datos" as DB
+
+U -> V: Ingresa usuario y contraseña
+U -> V: Hace clic en "Iniciar Sesión"
+V -> C: login(usuario, password)
+
+C -> M: autenticar(usuario, password)
+M -> DB: SELECT * FROM usuarios 
+DB --> M: WHERE nombre_usuario = usuario
+M -> M: verificarPassword(password)
+M -> M: generarHash(password_ingresada)
+
+alt Contraseña válida
+    M --> C: Usuario encontrado
+    C -> S: crearSesion(usuario)
+    S -> S: generarToken()
+    S -> DB: INSERT INTO sesiones
+    S --> C: token_sesion
+    
+    alt Rol = docente
+        C -> V: redireccionar a /docente/dashboard
+        V --> U: Muestra panel docente
+    else Rol = estudiante
+        C -> V: redireccionar a /estudiante/dashboard
+        V --> U: Muestra panel estudiante
+    end
+    
+else Contraseña inválida
+    M -> DB: UPDATE usuarios 
+    DB --> M: SET intentos_fallidos = intentos+1
+    M --> C: Error: Contraseña incorrecta
+    
+    alt Intentos >= 3
+        M -> DB: UPDATE usuarios 
+        DB --> M: SET bloqueado_hasta = NOW() + 30 min
+        C --> V: Mostrar mensaje de bloqueo
+    else
+        C --> V: Mostrar error con intentos restantes
+    end
+    V --> U: Muestra mensaje de error
+    
+else Usuario no existe
+    M --> C: Error: Usuario no encontrado
+    C --> V: Mostrar mensaje de error
+    V --> U: Muestra mensaje de error
+end
+
+@enduml

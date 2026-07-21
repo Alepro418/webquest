@@ -1,0 +1,94 @@
+@startuml
+title Secuencia: Ciclo de Vida Completo de una Entrega
+
+actor Estudiante as E
+actor Docente as D
+participant "Sistema Webquest" as S
+participant "Taller" as T
+participant "Entrega" as Ent
+participant "Evaluacion" as Ev
+database "Base de Datos" as DB
+
+== Fase 1: Creación del Taller (Docente) ==
+D -> S: Crea taller para asignatura
+S -> T: nuevoTaller(datos)
+T -> DB: INSERT INTO talleres
+DB --> T: id_taller
+S --> D: "Taller creado exitosamente"
+
+== Fase 2: Publicación ==
+D -> S: Publica taller
+S -> T: publicar(id_taller)
+T -> DB: UPDATE talleres SET estado = 'publicado'
+DB --> T: Confirmación
+S --> D: "Taller publicado"
+note right of S: Los estudiantes ahora pueden ver el taller
+
+== Fase 3: Visualización por Estudiante ==
+E -> S: Accede a asignatura
+S -> DB: SELECT talleres FROM asignatura
+DB --> S: Lista de talleres
+S --> E: Muestra taller disponible
+
+== Fase 4: Realización del Taller ==
+E -> S: Selecciona "Realizar taller"
+S -> T: obtenerInstrucciones(id_taller)
+T --> S: Instrucciones y recursos
+S --> E: Muestra página del taller
+
+note right of E: Trabajo en libreta física
+
+E -> S: Sube fotografía de libreta
+S -> Ent: nuevaEntrega(id_estudiante, id_taller, foto)
+Ent -> DB: INSERT INTO entregas_taller
+DB --> Ent: id_entrega
+S --> E: "Entrega recibida"
+
+== Fase 5: Notificación al Docente ==
+S -> D: Notificación: "Nueva entrega pendiente"
+D --> S: Revisa notificación
+
+== Fase 6: Evaluación por Docente ==
+D -> S: Accede a "Evaluaciones pendientes"
+S -> DB: SELECT entregas sin evaluar
+DB --> S: Lista de entregas
+S --> D: Muestra entregas pendientes
+
+D -> S: Selecciona entrega específica
+S -> Ent: obtenerEntrega(id_entrega)
+Ent --> S: datos_entrega + foto
+S -> DB: SELECT datos_estudiante
+DB --> S: información_estudiante
+S --> D: Muestra foto y datos
+
+D -> S: Ingresa puntaje y observaciones
+S -> Ev: nuevaEvaluacion(id_entrega, puntaje, obs)
+Ev -> Ev: calcularEscala(puntaje)
+Ev -> DB: INSERT INTO evaluaciones
+DB --> Ev: id_evaluacion
+
+S -> Ent: actualizarEstado('evaluada')
+Ent -> DB: UPDATE entregas_taller SET estado = 'evaluada'
+DB --> Ent: Confirmación
+
+S -> DB: recalcularPromedioEstudiante(id_estudiante)
+S -> DB: actualizarEstatusMotivacional(id_estudiante)
+
+S --> D: "Evaluación guardada"
+
+== Fase 7: Notificación al Estudiante ==
+S -> E: Notificación: "Tu taller ha sido evaluado"
+E --> S: Abre notificación
+
+== Fase 8: Consulta de Resultados ==
+E -> S: Accede a "Mis Resultados"
+S -> DB: SELECT evaluaciones del estudiante
+DB --> S: lista_evaluaciones
+S --> E: Muestra calificaciones y estatus
+
+E -> S: Selecciona evaluación específica
+S -> DB: SELECT detalle evaluación
+DB --> S: puntaje, escala, observaciones, foto
+S --> E: Muestra detalle completo
+
+@enduml

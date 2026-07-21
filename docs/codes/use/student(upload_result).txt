@@ -1,0 +1,51 @@
+@startuml
+title Casos de Uso - Subida de Evidencia Fotográfica
+
+left to right direction
+actor "Estudiante" as E
+actor "Sistema" as S
+
+rectangle "Módulo de Entrega de Talleres" {
+  usecase "Subir foto de libreta" as UC1
+  usecase "Validar formato (JPEG/PNG)" as UC2
+  usecase "Validar tamaño (≤ 5 MB)" as UC3
+  usecase "Validar resolución (≥ 800x600)" as UC4
+  usecase "Detectar borrosidad (opcional)" as UC5
+  usecase "Verificar legibilidad básica" as UC6
+  usecase "Prevenir duplicados (hash)" as UC7
+  usecase "Generar nombre único" as UC8
+  usecase "Almacenar en servidor" as UC9
+  usecase "Crear backup automático" as UC10
+}
+
+E --> UC1
+UC1 ..> UC2 : <<include>>
+UC1 ..> UC3 : <<include>>
+UC1 ..> UC4 : <<include>>
+UC1 ..> UC6 : <<include>>
+UC1 ..> UC7 : <<include>>
+UC1 ..> UC8 : <<include>>
+UC1 ..> UC9 : <<include>>
+UC9 ..> UC10 : <<include>>
+
+UC5 ..> UC1 : <<extend>> (opcional)
+
+note right of UC1
+  El estudiante sube la foto
+  desde su dispositivo
+end note
+
+note right of UC8
+  Formato: [id_estudiante]_[timestamp].[extension]
+end note
+
+note bottom of UC9
+  Ruta: /public/student/uploads/[año]/[mes]/
+end note
+
+note left of UC10
+  Backup automático en
+  almacenamiento secundario
+end note
+
+@enduml

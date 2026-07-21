@@ -1,0 +1,120 @@
+@startuml
+title Secuencia: Proceso Completo de Evaluación y Retroalimentación
+
+actor Estudiante as E
+actor Docente as D
+participant "Sistema" as S
+participant "EntregaModel" as EM
+participant "EvaluacionModel" as EVM
+participant "NotificacionModel" as NM
+participant "HistorialModel" as HM
+database "Base de Datos" as DB
+
+== Inicio: Estudiante realiza entrega ==
+E -> S: Sube foto de libreta
+S -> EM: crearEntrega(datos)
+EM -> DB: INSERT INTO entregas_taller
+DB --> EM: id_entrega
+EM --> S: Entrega creada
+S --> E: Confirmación de recepción
+
+S -> NM: notificarNuevaEntrega(id_docente, id_entrega)
+NM -> DB: INSERT INTO notificaciones
+DB --> NM: Confirmación
+
+== Docente recibe notificación ==
+D -> S: Inicia sesión
+S -> DB: SELECT notificaciones_pendientes
+DB --> S: lista_notificaciones
+S --> D: Muestra notificación de nueva entrega
+
+D -> S: Accede a la entrega
+S -> EM: obtenerEntrega(id_entrega)
+EM -> DB: SELECT * FROM entregas_taller WHERE id_entrega = id
+DB --> EM: datos_entrega
+EM --> S: datos_entrega
+
+S -> DB: SELECT datos_estudiante FROM usuarios WHERE id = id_estudiante
+DB --> S: info_estudiante
+S --> D: Muestra foto y datos
+
+== Proceso de evaluación ==
+D -> S: Ingresa puntaje (15)
+S -> S: validarPuntaje(15)
+
+S -> EVM: calcularEscala(15)
+EVM --> S: 'B' (Distinguido)
+
+D -> S: Escribe observaciones
+D -> S: Selecciona estatus "Buen estudiante"
+D -> S: Confirma evaluación
+
+S -> EVM: crearEvaluacion(datos)
+EVM -> EVM: setIdEntrega(id_entrega)
+EVM -> EVM: setPuntaje(15)
+EVM -> EVM: setEscalaLetra('B')
+EVM -> EVM: setObservaciones(observaciones)
+EVM -> EVM: setEstatus('Buen estudiante')
+EVM -> EVM: setIdDocente(id_docente)
+
+EVM -> DB: INSERT INTO evaluaciones
+DB --> EVM: id_evaluacion
+
+S -> EM: actualizarEstado(id_entrega, 'evaluada')
+EM -> DB: UPDATE entregas_taller SET estado = 'evaluada'
+DB --> EM: Confirmación
+
+== Actualización de promedios ==
+S -> EVM: calcularPromedioEstudiante(id_estudiante)
+EVM -> DB: SELECT AVG(puntaje) FROM evaluaciones e JOIN entregas_taller et ON e.id_entrega = et.id_entrega WHERE et.id_estudiante = id
+DB --> EVM: promedio = 16.5
+EVM --> S: promedio = 16.5
+
+S -> HM: actualizarPromedioHistorico(id_estudiante, 16.5)
+HM -> DB: UPDATE historial SET promedio = 16.5
+DB --> HM: Confirmación
+
+== Actualización de estatus motivacional ==
+S -> EVM: determinarEstatusMotivacional(id_estudiante)
+EVM -> DB: SELECT AVG(puntaje) as promedio FROM evaluaciones e JOIN entregas_taller et ON e.id_entrega = et.id_entrega WHERE et.id_estudiante = id
+DB --> EVM: promedio
+
+alt promedio >= 18
+    EVM --> S: 'Sobresaliente'
+else promedio >= 12
+    EVM --> S: 'Buen estudiante'
+else
+    EVM --> S: 'Vamos a mejorar'
+end
+
+S -> DB: UPDATE usuarios SET estatus = 'Buen estudiante' WHERE id = id_estudiante
+DB --> S: Confirmación
+
+== Notificación al estudiante ==
+S -> NM: notificarEvaluacion(id_estudiante, id_evaluacion)
+NM -> DB: INSERT INTO notificaciones
+DB --> NM: Confirmación
+
+== Estudiante recibe resultado ==
+E -> S: Inicia sesión
+S -> DB: SELECT notificaciones_pendientes
+DB --> S: "Tu taller ha sido evaluado"
+S --> E: Muestra notificación
+
+E -> S: Consulta resultado
+S -> EVM: obtenerEvaluacion(id_estudiante, id_taller)
+EVM -> DB: SELECT * FROM evaluaciones e JOIN entregas_taller et ON e.id_entrega = et.id_entrega WHERE et.id_estudiante = id_estudiante AND et.id_taller = id_taller
+DB --> EVM: datos_evaluacion
+EVM --> S: datos_evaluacion
+
+S --> E: Muestra: puntaje, escala, observaciones, estatus
+
+E -> S: Lee observaciones
+S --> E: Retroalimentación completa
+
+== Actualización de historial ==
+S -> HM: registrarEvento(id_estudiante, 'evaluacion_recibida', id_evaluacion)
+HM -> DB: INSERT INTO historial_actividad
+DB --> HM: Confirmación
+
+@enduml

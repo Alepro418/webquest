@@ -1,0 +1,99 @@
+@startuml
+title Diagrama de Casos de Uso - Ciclo de Vida Académico (Rol Docente)
+
+left to right direction
+actor "Docente" as D
+
+rectangle "Sistema de Gestión Académica" {
+  usecase "Planificar unidades temáticas" as UC1
+  usecase "Crear estructura de asignaturas" as UC2
+  usecase "Seleccionar y subir recursos multimedia" as UC3
+  usecase "Organizar secuencia de actividades" as UC4
+  usecase "Revisar entregas diariamente" as UC5
+  usecase "Monitorear participación estudiantil" as UC6
+  usecase "Identificar estudiantes con rezago" as UC7
+  usecase "Tomar acciones preventivas" as UC8
+  usecase "Evaluar entregas completadas" as UC9
+  usecase "Proporcionar retroalimentación" as UC10
+  usecase "Registrar calificaciones" as UC11
+  usecase "Actualizar estatus motivacional" as UC12
+  usecase "Revisar estadísticas de rendimiento" as UC13
+  usecase "Analizar efectividad de recursos" as UC14
+  usecase "Ajustar estrategias pedagógicas" as UC15
+  usecase "Preparar informes de progreso" as UC16
+  usecase "Generar reporte final de cohorte" as UC17
+  usecase "Consolidar resultados" as UC18
+  usecase "Cerrar período académico" as UC19
+}
+
+D --> UC1
+D --> UC2
+D --> UC3
+D --> UC4
+D --> UC5
+D --> UC6
+D --> UC7
+D --> UC9
+D --> UC10
+D --> UC11
+D --> UC12
+D --> UC13
+D --> UC14
+D --> UC15
+D --> UC16
+D --> UC17
+D --> UC18
+D --> UC19
+
+' Relaciones de inclusión (acciones obligatorias)
+UC2 ..> UC1 : <<include>> (para planificar unidades)
+UC2 ..> UC4 : <<include>> (para organizar secuencia)
+UC3 ..> UC2 : <<extend>> (subir recursos es parte de la preparación)
+UC5 ..> UC6 : <<include>> (revisión diaria incluye monitoreo)
+UC7 ..> UC8 : <<extend>> (si detecta rezago, toma acciones)
+UC9 ..> UC10 : <<include>> (evaluación incluye feedback)
+UC9 ..> UC11 : <<include>> (evaluación incluye calificación)
+UC9 ..> UC12 : <<include>> (eval afecta estatus)
+UC13 ..> UC14 : <<include>> (revisar estadísticas incluye análisis de recursos)
+UC13 ..> UC15 : <<extend>> (puede ajustar estrategias)
+UC13 ..> UC16 : <<include>> (prepara informes)
+UC17 ..> UC18 : <<include>> (reporte final incluye consolidación)
+UC18 ..> UC19 : <<include>> (consolidación cierra período)
+
+' Notas explicativas
+note right of UC1
+  Planifica unidades temáticas
+  para el período académico
+end note
+
+note right of UC3
+  Sube recursos multimedia:
+  videos, documentos, enlaces
+end note
+
+note right of UC7
+  Identifica estudiantes con
+  bajo rendimiento o rezago
+end note
+
+note right of UC9
+  Evalúa talleres entregados,
+  asigna puntaje y escala
+end note
+
+note right of UC12
+  Actualiza estatus automáticamente
+  según promedio ponderado
+end note
+
+note right of UC13
+  Revisa estadísticas y
+  efectividad de recursos
+end note
+
+note bottom of UC17
+  Genera reporte final con
+  resultados consolidados
+  al finalizar el período
+end note
+@enduml

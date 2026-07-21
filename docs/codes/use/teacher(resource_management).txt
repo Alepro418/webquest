@@ -1,0 +1,128 @@
+@startuml
+title Diagrama de Casos de Uso - Curaduría de Recursos Multimedia
+
+left to right direction
+actor "Docente" as D
+
+rectangle "Sistema de Curaduría de Recursos" {
+  usecase "Seleccionar asignatura" as UC1
+  usecase "Ver panel de recursos" as UC2
+  usecase "Agregar recurso" as UC3
+  usecase "Seleccionar tipo de recurso" as UC4
+  usecase "Agregar enlace web" as UC5
+  usecase "Validar formato URL" as UC6
+  usecase "Verificar accesibilidad del enlace" as UC7
+  usecase "Obtener metadatos (título, descripción)" as UC8
+  usecase "Agregar video" as UC9
+  usecase "Seleccionar plataforma (YouTube/Vimeo)" as UC10
+  usecase "Extraer ID del video" as UC11
+  usecase "Obtener thumbnail automático" as UC12
+  usecase "Agregar documento" as UC13
+  usecase "Seleccionar archivo local" as UC14
+  usecase "Validar tamaño de archivo (máx. 10MB)" as UC15
+  usecase "Validar formato de archivo" as UC16
+  usecase "Subir archivo al servidor" as UC17
+  usecase "Generar nombre único" as UC18
+  usecase "Guardar ruta en base de datos" as UC19
+  usecase "Crear miniatura del documento" as UC20
+  usecase "Actualizar listado de recursos" as UC21
+  usecase "Establecer orden de visualización" as UC22
+  usecase "Definir recurso obligatorio/complementario" as UC23
+  usecase "Agregar otro recurso" as UC24
+  usecase "Ver vista previa de recursos" as UC25
+  usecase "Confirmar operación" as UC26
+}
+
+D --> UC1
+D --> UC3
+D --> UC22
+D --> UC23
+
+' Inclusiones obligatorias
+UC1 ..> UC2 : <<include>>
+UC3 ..> UC4 : <<include>>
+UC4 ..> UC5 : <<extend>> (si elige Enlace Web)
+UC4 ..> UC9 : <<extend>> (si elige Video)
+UC4 ..> UC13 : <<extend>> (si elige Documento)
+
+' Validaciones de enlace web
+UC5 ..> UC6 : <<include>>
+UC6 ..> UC7 : <<include>> (si URL válida)
+UC7 ..> UC8 : <<include>>
+
+' Validaciones de video
+UC9 ..> UC10 : <<include>>
+UC9 ..> UC11 : <<include>>
+UC9 ..> UC12 : <<include>>
+
+' Validaciones de documento
+UC13 ..> UC14 : <<include>>
+UC13 ..> UC15 : <<include>>
+UC13 ..> UC16 : <<include>>
+UC16 ..> UC17 : <<include>> (si formato válido)
+UC17 ..> UC18 : <<include>>
+UC17 ..> UC19 : <<include>>
+UC17 ..> UC20 : <<extend>> (si aplica)
+
+' Acciones posteriores
+UC3 ..> UC21 : <<include>> (siempre)
+UC3 ..> UC22 : <<include>> (siempre)
+UC3 ..> UC23 : <<include>> (siempre)
+UC3 ..> UC24 : <<extend>> (opcional, volver a agregar)
+UC3 ..> UC25 : <<include>> (tras finalizar)
+UC25 ..> UC26 : <<include>> (confirmar)
+
+' Notas explicativas
+note right of UC6
+  Valida formato URL.
+  Si es inválida, muestra error
+  y solicita corrección.
+end note
+
+note right of UC7
+  Verifica que el enlace sea
+  accesible (no roto).
+end note
+
+note right of UC8
+  Obtiene automáticamente
+  título y descripción de la página.
+end note
+
+note right of UC15
+  Tamaño máximo: 10 MB.
+  Si excede, muestra error
+  y sugiere comprimir.
+end note
+
+note right of UC16
+  Formatos aceptados:
+  PDF, DOC, DOCX, PPT.
+  Si no es válido, muestra
+  error y solicita otro archivo.
+end note
+
+note right of UC20
+  Si el documento lo permite,
+  genera una miniatura
+  para previsualización.
+end note
+
+note right of UC21
+  Después de agregar el recurso,
+  actualiza el listado visible
+  para el docente.
+end note
+
+note bottom of UC24
+  Permite al docente agregar
+  otro recurso sin salir del panel.
+end note
+
+note bottom of UC26
+  Confirma que los recursos
+  estén organizados y guardados
+  correctamente.
+end note
+
+@enduml

@@ -1,0 +1,96 @@
+@startuml
+title Actividad: Explorar Asignaturas Disponibles
+
+start
+
+:Estudiante accede a "Mis Asignaturas";
+:Sistema identifica grado del estudiante;
+:Sistema consulta asignaturas publicadas para ese grado;
+
+:Sistema organiza asignaturas por:
+- Período escolar
+- Fecha de publicación
+- Estado de avance;
+
+:Sistema muestra listado con;
+
+repeat
+  :Muestra tarjeta con:
+  - Título de asignatura
+  - Descripción breve
+  - Progreso personal (barra)
+  - Última actividad realizada
+  - Número de recursos disponibles;
+  
+  if (progreso = 100%) then
+    :Muestra ícono de completada ✓;
+  elseif (progreso > 0) then
+    :Muestra ícono de en progreso ⟳;
+  else
+    :Muestra ícono de nueva 🆕;
+  endif
+repeat while (más asignaturas)
+
+:Estudiante puede ordenar por:
+- Título (A-Z)
+- Progreso (mayor a menor)
+- Fecha (más reciente)
+
+:Estudiante puede filtrar por:
+- Estado (nuevas/en progreso/completadas)
+- Unidad temática;
+
+if (Estudiante selecciona asignatura) then
+  :Sistema carga vista detallada;
+  
+  partition "CABECERA DE ASIGNATURA" {
+    :Muestra título completo;
+    :Muestra descripción detallada;
+    :Muestra objetivos de aprendizaje;
+  }
+  
+  partition "UNIDADES TEMÁTICAS" {
+    repeat
+      :Muestra título de unidad;
+      :Muestra contenido;
+      
+      if (unidad tiene recursos) then
+        :Lista recursos disponibles;
+      endif
+      
+      if (unidad tiene taller) then
+        :Muestra estado del taller;
+        :Ofrece acceder;
+      endif
+    repeat while (más unidades)
+  }
+  
+  partition "RECURSOS MULTIMEDIA" {
+    :Agrupa recursos por tipo;
+    
+    repeat
+      if (tipo = video) then
+        :Muestra thumbnail;
+        :Título del video;
+        :Duración;
+        :[Reproducir];
+      elseif (tipo = documento) then
+        :Muestra ícono del formato;
+        :Nombre del documento;
+        :Tamaño del archivo;
+        :[Descargar];
+      elseif (tipo = enlace) then
+        :Muestra título del sitio;
+        :Descripción;
+        :URL abreviada;
+        :[Visitar];
+      endif
+    repeat while (más recursos)
+  }
+endif
+
+:Estudiante puede marcar recursos como favoritos;
+:Sistema registra visualizaciones;
+
+stop
+@enduml

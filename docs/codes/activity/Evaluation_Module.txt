@@ -1,0 +1,95 @@
+@startuml
+title Actividad: Evaluación de Entregas
+
+start
+
+:Docente accede a "Evaluaciones Pendientes";
+:Sistema muestra resumen de entregas por asignatura;
+
+if (¿Filtros disponibles?) then (Sí)
+  :Docente puede filtrar por:
+  - Asignatura específica
+  - Fecha de entrega
+  - Estudiante
+  - Estado (pendiente/evaluado);
+  :Sistema actualiza listado según filtros;
+endif
+
+repeat
+  :Docente selecciona una entrega específica;
+  
+  :Sistema despliega interfaz de evaluación;
+  
+  === VISUALIZACIÓN ===
+  :Muestra fotografía de la libreta;
+  :Muestra datos del estudiante;
+  :Muestra fecha y hora de entrega;
+  :Muestra historial de entregas previas;
+  
+  if (¿Imagen legible?) then (Sí)
+    
+    === EVALUACIÓN CUANTITATIVA ===
+    :Docente ingresa puntaje numérico (0-20);
+    
+    while (Puntaje válido?) is (No)
+      if (Puntaje < 0 or > 20) then
+        :Sistema muestra error: "Rango permitido 0-20";
+        :Solicita nuevo ingreso;
+      endif
+    endwhile
+    
+    :Sistema calcula automáticamente escala de letras;
+    
+    note right
+      Cálculo automático:
+      A: 20-18 pts (Sobresaliente)
+      B: 17-15 pts (Distinguido)
+      C: 14-12 pts (Aprobado)
+      D: 11-0 pts (Por mejorar)
+    endnote
+    
+    === EVALUACIÓN CUALITATIVA ===
+    :Docente redacta observaciones pedagógicas;
+    
+    if (Observaciones < 10 caracteres?) then (Sí)
+      :Sistema sugiere: "Agregar más detalles para el estudiante";
+      :Docente puede ampliar o continuar;
+    endif
+    
+    === ESTATUS MOTIVACIONAL ===
+    :Sistema sugiere estatus basado en promedio histórico;
+    :Docente puede mantener o modificar;
+    
+    :Docente confirma evaluación completa;
+    
+    if (¿Datos completos?) then (Sí)
+      :Sistema guarda evaluación;
+      :Sistema actualiza promedio del estudiante;
+      :Sistema recalcula estatus motivacional global;
+      :Sistema genera notificación para el estudiante;
+      :Marca entrega como "evaluada";
+      :Registra ID del docente evaluador;
+      :Registra timestamp de evaluación;
+      
+      :Muestra mensaje: "Evaluación guardada exitosamente";
+    else (No)
+      :Sistema identifica campos pendientes;
+      :Solicita completar información;
+      backward
+    endif
+    
+  else (No - Imagen ilegible)
+    :Docente selecciona opción "Solicitar nueva entrega";
+    :Sistema muestra campo para observaciones;
+    :Docente explica el motivo (imagen borrosa, incompleta, etc.);
+    :Sistema envía notificación al estudiante;
+    :Marca entrega como "rechazada - requiere reenvío";
+  endif
+  
+repeat while (¿Evaluar otra entrega?) is (Sí)
+
+:Docente visualiza resumen de evaluaciones realizadas;
+:Docente puede exportar lista de calificaciones;
+
+stop
+@enduml

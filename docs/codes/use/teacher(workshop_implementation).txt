@@ -1,0 +1,134 @@
+@startuml
+title Actividad: Ejecución del Taller - Método Híbrido
+
+start
+
+:Estudiante selecciona "Realizar Taller" desde asignatura;
+:Sistema verifica si ya existe entrega previa;
+
+if (¿Entrega existente?) then (Sí)
+  :Muestra advertencia: "Ya realizaste este taller";
+  :Ofrece opciones:
+  - Ver mi entrega
+  - Reemplazar entrega
+  - Cancelar;
+  
+  if (Reemplazar) then
+    :Continúa con nueva entrega;
+    :La anterior quedará como histórico;
+  else
+    :Cancela operación;
+    stop
+  endif
+endif
+
+== VISUALIZACIÓN DEL TALLER ==
+:Sistema carga página del taller con:
+- Título de la actividad
+- Instrucciones detalladas paso a paso
+- Criterios de evaluación
+- Recursos de apoyo recomendados
+
+:Estudiante lee las instrucciones cuidadosamente;
+
+if (¿Necesita consultar recursos?) then (Sí)
+  :Puede acceder a recursos desde la misma página;
+  :Sistema mantiene contexto del taller;
+endif
+
+== TRABAJO EN LIBRETA FÍSICA ==
+:Estudiante prepara su libreta de Ciencias Naturales;
+:Estudiante trabaja según indicaciones:
+
+note right
+  Ejemplo de instrucciones:
+  1. Dibuja el ciclo del agua
+  2. Escribe 3 características de cada etapa
+  3. Colorea los dibujos
+  4. Escribe tu nombre y fecha
+end note
+
+:Sistema muestra temporizador opcional;
+:Estudiante trabaja sin conexión digital;
+
+== TOMA DE EVIDENCIA FOTOGRÁFICA ==
+:Estudiante toma fotografía de su libreta con dispositivo móvil;
+
+:Sistema ofrece opciones para subir foto:
+
+if (Método de subida) then (Tomar foto ahora)
+  :Activa cámara del dispositivo;
+  :Muestra visor en tiempo real;
+  :Estudiante captura imagen;
+  
+else if (Seleccionar de galería) then
+  :Abre selector de archivos;
+  :Estudiante elige foto existente;
+endif
+
+:Sistema muestra vista previa de la imagen;
+
+== VALIDACIÓN DE LA IMAGEN ==
+:Verifica calidad de la imagen;
+
+if (¿Cumple requisitos?) then (No)
+  note right
+    Requisitos:
+    - Formato: JPG/PNG
+    - Tamaño ≤ 5MB
+    - Resolución ≥ 800x600
+    - Imagen legible
+    - Buena iluminación
+  end note
+  
+  :Muestra mensaje específico del problema;
+  :Sugiere mejoras;
+  :Ofrece tomar nueva foto;
+  backward
+  
+else (Sí)
+  :Sistema procesa y optimiza imagen;
+  :Genera nombre único de archivo;
+endif
+
+== CONFIRMACIÓN DE ENTREGA ==
+:Sistema muestra resumen de la entrega:
+- Nombre del taller
+- Fecha y hora actual
+- Vista previa de la imagen
+- Advertencia: "No podrás modificar después de entregar"
+
+:Solicita confirmación final;
+
+if (¿Estudiante confirma?) then (Sí)
+  :Sistema guarda entrega en base de datos;
+  :Registra:
+  - id_estudiante
+  - id_asignatura
+  - ruta_fotografía
+  - fecha_envio (timestamp)
+  - estado = "pendiente_evaluación"
+  
+  :Sistema envía notificación al docente;
+  :Muestra mensaje de éxito;
+  :Ofrece ver estado de la entrega;
+  
+  :Sistema actualiza progreso del estudiante;
+  
+else (No)
+  :Estudiante puede:
+  - Tomar nueva foto
+  - Cancelar entrega
+  - Guardar borrador
+endif
+
+== POST-ENTREGA ==
+:Sistema permite al estudiante:
+- Ver comprobante de entrega
+- Recordatorio de fecha límite si aplica
+- Opción de anexar más fotos (si taller lo permite)
+
+:Estudiante regresa a panel principal;
+
+stop
+@enduml

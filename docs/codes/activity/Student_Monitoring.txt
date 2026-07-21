@@ -1,0 +1,92 @@
+@startuml
+title Actividad: Monitoreo de Cohorte Estudiantil
+
+start
+
+:Docente accede a "Panel de Control";
+:Sistema consulta estudiantes activos;
+
+:Sistema calcula métricas generales:
+- Total estudiantes: {total}
+- Promedio general: {promedio}
+- Tasa entregas: {porcentaje}
+- Distribución estatus;
+
+:Sistema muestra dashboard con;
+
+partition "VISTA GENERAL" {
+  :Presenta tarjetas de resumen;
+}
+
+if (Docente selecciona vista) then
+  if (Vista Cuadrícula) then
+    :Muestra estudiantes en formato tarjetas;
+    
+    repeat
+      :Muestra:
+      - Nombre completo
+      - Grado
+      - Promedio con color indicador
+      - Barra de progreso visual
+      - Estatus motivacional con ícono
+      - Última actividad;
+    repeat while (más estudiantes)
+    
+  elseif (Vista Lista) then
+    :Muestra tabla con columnas:
+    - Nombre (ordenable)
+    - Grado (filtrable)
+    - Promedio (ordenable)
+    - Estatus (filtrable)
+    - Entregas realizadas
+    - Última evaluación
+    - Acciones;
+  endif
+endif
+
+if (Docente aplica filtros) then
+  :Filtra por:
+  - Rango de promedios
+  - Estatus motivacional
+  - Grado escolar
+  - Fecha última actividad;
+  :Actualiza visualización;
+endif
+
+if (Docente selecciona estudiante) then
+  :Sistema carga vista individual;
+  :Muestra perfil completo del estudiante;
+  :Muestra historial de evaluaciones;
+  
+  repeat
+    :Presenta:
+    - Asignatura
+    - Taller realizado
+    - Fecha entrega
+    - Fecha evaluación
+    - Puntaje obtenido
+    - Escala letra
+    - Observaciones
+    - [Ver foto entrega];
+  repeat while (más evaluaciones)
+  
+  :Sistema calcula gráfico de evolución;
+  :Muestra tendencia de rendimiento;
+  :Compara con promedio grupal;
+  
+  if (Docente lo requiere) then
+    :Agrega nota interna;
+    :Programa seguimiento;
+    :Envía mensaje al estudiante;
+  endif
+endif
+
+if (Docente solicita exportar) then
+  :Selecciona formato (PDF/Excel);
+  :Define rango de datos;
+  :Sistema genera reporte;
+  :Ofrece descarga;
+endif
+
+stop
+@enduml

@@ -1,0 +1,76 @@
+@startuml
+title Diagrama de Casos de Uso - Visualización de Calificaciones y Estatus Motivacional
+
+left to right direction
+actor "Estudiante" as E
+
+rectangle "Sistema de Gestión de Resultados" {
+  usecase "Ver dashboard de resultados" as UC1
+  usecase "Mostrar estatus motivacional actual" as UC2
+  usecase "Calcular promedio general" as UC3
+  usecase "Listar evaluaciones por asignatura" as UC4
+  usecase "Expandir detalles de asignatura" as UC5
+  usecase "Ver talleres evaluados" as UC6
+  usecase "Ver detalle de taller (puntaje, escala, observaciones)" as UC7
+  usecase "Ver foto de entrega" as UC8
+  usecase "Ver gráfico de evolución" as UC9
+  usecase "Comparar con promedio grupal" as UC10
+  usecase "Ver áreas de mejora" as UC11
+  usecase "Consultar significado del estatus" as UC12
+  usecase "Ver recomendaciones personalizadas" as UC13
+  usecase "Compartir logros" as UC14
+  usecase "Exportar historial académico" as UC15
+}
+
+E --> UC1
+E --> UC2
+E --> UC4
+E --> UC9
+E --> UC12
+E --> UC14
+E --> UC15
+
+' Inclusiones obligatorias
+UC1 ..> UC2 : <<include>>
+UC1 ..> UC3 : <<include>>
+UC4 ..> UC5 : <<extend>> (opcional)
+UC5 ..> UC6 : <<include>> (si expande)
+UC6 ..> UC7 : <<extend>> (si selecciona taller)
+UC7 ..> UC8 : <<extend>> (si quiere ver foto)
+UC9 ..> UC10 : <<include>> (comparativa)
+UC12 ..> UC11 : <<include>> (muestra recomendaciones)
+
+' Notas explicativas
+note right of UC2
+  Muestra ícono, título y mensaje
+  motivacional según estatus
+end note
+
+note right of UC7
+  Detalle: puntaje/20, escala (A-D),
+  fecha, observaciones del docente
+end note
+
+note right of UC9
+  Gráfico de líneas con evolución
+  por período y metas alcanzadas
+end note
+
+note right of UC12
+  Explica significado del estatus:
+  - Sobresaliente
+  - Buen estudiante
+  - Vamos a mejorar
+end note
+
+note bottom of UC14
+  Genera imagen de logro
+  para descargar o compartir
+end note
+
+note bottom of UC15
+  Exporta historial completo
+  en formato PDF o Excel
+end note
+
+@enduml

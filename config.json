@@ -1,0 +1,210 @@
+{
+    "project": {
+        "name": "Webquest - Plataforma Educativa",
+        "version": "1.0.0",
+        "environment": "development",
+        "debug": true,
+        "timezone": "America/Caracas",
+        "locale": "es_VE"
+    },
+    
+    "database": {
+        "connection": "mysql",
+        "host": "localhost",
+        "port": 3306,
+        "database": "webquest",
+        "username": "root",
+        "password": "",
+        "charset": "utf8mb4",
+        "collation": "utf8mb4_unicode_ci",
+        "prefix": "",
+        "options": {
+            "persistent": false,
+            "compress": true,
+            "strict": false
+        }
+    },
+    
+    "paths": {
+        "root": "/Webquest",
+        "public": "/public",
+        "uploads": "/public/uploads",
+        "uploads_student": "/public/uploads/entregas",
+        "uploads_profiles": "/public/uploads/profiles",
+        "uploads_resources": "/public/uploads/recursos",
+        "templates": "/template",
+        "src": "/src",
+        "src_core": "/src/core",
+        "src_models": "/src/core/Models",
+        "src_controllers": "/src/core/Controllers",
+        "src_views": "/src/core/Views",
+        "src_db": "/src/db",
+        "logs": "/logs",
+        "cache": "/cache",
+        "exports": "/exports"
+    },
+    
+    "security": {
+        "password": {
+            "min_length": 8,
+            "require_uppercase": true,
+            "require_lowercase": true,
+            "require_numbers": true,
+            "require_special": true,
+            "hash_algo": "Argon2id",
+            "hash_cost": {
+                "memory_cost": 65536,
+                "time_cost": 4,
+                "threads": 1
+            }
+        },
+        "session": {
+            "name": "webquest_session",
+            "lifetime": 7200,
+            "secure": false,
+            "httponly": true,
+            "samesite": "Strict"
+        },
+        "login": {
+            "max_attempts": 3,
+            "block_time": 30,
+            "remember_me_days": 30
+        },
+        "security_questions": {
+            "required_count": 5,
+            "allow_custom": false,
+            "hash_responses": true
+        }
+    },
+    
+    "uploads": {
+        "max_file_size": 5242880,
+        "allowed_extensions": {
+            "images": ["jpg", "jpeg", "png", "gif"],
+            "documents": ["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx"],
+            "videos": ["mp4", "webm", "ogg"]
+        },
+        "image_validation": {
+            "min_width": 800,
+            "min_height": 600,
+            "max_width": 4096,
+            "max_height": 4096,
+            "optimize": true,
+            "optimize_quality": 85
+        }
+    },
+    
+    "academic": {
+        "grados": [1, 2, 3, 4, 5, 6],
+        "secciones": ["A", "B", "C", "D", "E"],
+        "evaluation": {
+            "max_score": 20,
+            "scales": {
+                "A": {"min": 18, "max": 20, "label": "Sobresaliente"},
+                "B": {"min": 15, "max": 17, "label": "Distinguido"},
+                "C": {"min": 12, "max": 14, "label": "Aprobado"},
+                "D": {"min": 0, "max": 11, "label": "Por mejorar"}
+            },
+            "status_motivacional": {
+                "Sobresaliente": {
+                    "threshold": 18,
+                    "icon": "⭐",
+                    "color": "#166534",
+                    "bg_color": "#dcfce7",
+                    "message": "¡Excelente trabajo! Sigue así"
+                },
+                "Buen estudiante": {
+                    "threshold": 12,
+                    "icon": "✓",
+                    "color": "#1e40af",
+                    "bg_color": "#dbeafe",
+                    "message": "Vas por buen camino, sigue esforzándote"
+                },
+                "Vamos a mejorar": {
+                    "threshold": 0,
+                    "icon": "🌱",
+                    "color": "#9a3412",
+                    "bg_color": "#ffedd5",
+                    "message": "Confiamos en ti, tú puedes lograrlo"
+                }
+            },
+            "history_weight": {
+                "latest_5": 0.30,
+                "previous_5": 0.25,
+                "older": 0.45
+            }
+        },
+        "subject": {
+            "min_title_length": 5,
+            "max_title_length": 100,
+            "min_description_length": 50,
+            "max_description_length": 2000,
+            "min_objectives": 1,
+            "max_objectives": 10,
+            "min_units": 1,
+            "max_units": 8
+        }
+    },
+    
+    "features": {
+        "parental_supervision": true,
+        "security_questions": true,
+        "email_for_docentes": true,
+        "no_email_for_estudiantes": true,
+        "status_motivacional": true,
+        "reports": true,
+        "notifications": true,
+        "export_pdf": true,
+        "export_excel": true
+    },
+    
+    "notifications": {
+        "email_enabled": false,
+        "sms_enabled": false,
+        "whatsapp_enabled": false,
+        "in_app_enabled": true,
+        "types": {
+            "new_delivery": true,
+            "delivery_evaluated": true,
+            "status_change": true,
+            "deadline_reminder": true,
+            "account_blocked": true
+        }
+    },
+    
+    "logging": {
+        "enabled": true,
+        "level": "debug",
+        "file": "/logs/webquest.log",
+        "max_size": 10485760,
+        "max_files": 5,
+        "log_queries": false,
+        "log_sessions": true,
+        "log_errors": true
+    },
+    
+    "cache": {
+        "enabled": false,
+        "driver": "file",
+        "path": "/cache",
+        "ttl": 3600
+    },
+    
+    "api": {
+        "enabled": false,
+        "rate_limit": 60,
+        "rate_limit_period": 60
+    },
+    
+    "mail": {
+        "enabled": false,
+        "driver": "smtp",
+        "host": "smtp.gmail.com",
+        "port": 587,
+        "encryption": "tls",
+        "username": "",
+        "password": "",
+        "from_address": "noreply@webquest.edu",
+        "from_name": "Webquest Educativo"
+    }
+}

@@ -1,0 +1,90 @@
+@startuml
+title Secuencia: Docente - Evaluación de Entrega de Taller
+
+actor Docente as D
+participant "Vista Evaluaciones" as V
+participant "DocenteController" as C
+participant "EntregaModel" as EM
+participant "EvaluacionModel" as EVM
+participant "EstudianteModel" as EstM
+database "Base de Datos" as DB
+participant "Sistema Archivos" as FS
+
+D -> V: Accede a "Evaluaciones Pendientes"
+V -> C: pendientes()
+C -> EM: obtenerPendientes(id_docente)
+EM -> DB: SELECT * FROM entregas_taller
+DB --> EM: WHERE id_asignatura IN (asignaturas_docente)
+EM --> C: lista_entregas
+C --> V: Muestra entregas pendientes
+V --> D: Lista de entregas por evaluar
+
+D -> V: Selecciona una entrega
+V -> C: evaluar(id_entrega)
+C -> EM: obtenerPorId(id_entrega)
+EM -> DB: SELECT * FROM entregas_taller
+DB --> EM: WHERE id_entrega = id
+EM --> C: datos_entrega
+
+C -> FS: obtenerImagen(ruta_fotografia)
+FS --> C: imagen
+
+C -> EstM: obtenerPorId(id_estudiante)
+EstM -> DB: SELECT * FROM usuarios
+DB --> EstM: WHERE id_usuario = id
+EstM --> C: datos_estudiante
+
+C --> V: Muestra interfaz de evaluación
+V --> D: Visualización: Fotografía, Datos, Fecha
+
+== Proceso de Evaluación ==
+
+D -> V: Ingresa puntaje (0-20)
+V -> C: ingresarPuntaje(puntaje)
+C -> C: validarRango(puntaje)
+
+alt Puntaje válido
+    C -> EVM: calcularEscala(puntaje)
+    EVM --> C: escala_letra (A, B, C, D)
+    C --> V: Muestra escala calculada
+    
+    D -> V: Escribe observaciones
+    D -> V: Selecciona estatus motivacional
+    D -> V: Hace clic en "Guardar Evaluación"
+    
+    V -> C: guardarEvaluacion(datos_evaluacion)
+    
+    C -> EVM: nuevaEvaluacion()
+    EVM -> EVM: setIdEntrega(id_entrega)
+    EVM -> EVM: setIdDocente(id_docente)
+    EVM -> EVM: setPuntaje(puntaje)
+    EVM -> EVM: setEscalaLetra(escala)
+    EVM -> EVM: setObservaciones(observaciones)
+    EVM -> EVM: setEstatus(estatus)
+    
+    C -> EVM: guardar()
+    EVM -> DB: INSERT INTO evaluaciones
+    DB --> EVM: id_evaluacion
+    
+    C -> EM: actualizarEstado(id_entrega, 'evaluada')
+    EM -> DB: UPDATE entregas_taller SET estado = 'evaluada'
+    DB --> EM: Confirmación
+    
+    C -> EstM: recalcularPromedio(id_estudiante)
+    EstM -> DB: SELECT AVG(puntaje) FROM evaluaciones
+    DB --> EstM: WHERE id_estudiante = id
+    EstM -> EstM: actualizarPromedio(promedio)
+    EstM -> DB: UPDATE usuarios SET promedio_general = promedio
+    
+    C -> EstM: actualizarEstatusMotivacional(id_estudiante)
+    EstM -> DB: UPDATE usuarios SET estatus = nuevo_estatus
+    
+    C --> V: Evaluación guardada
+    V --> D: "Evaluación completada exitosamente"
+    
+else Puntaje inválido
+    C --> V: Error de rango
+    V --> D: "El puntaje debe ser entre 0 y 20"
+end
+
+@enduml

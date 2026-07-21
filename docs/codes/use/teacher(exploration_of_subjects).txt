@@ -1,0 +1,96 @@
+@startuml
+title Diagrama de Casos de Uso - Visualización y Exploración de Contenido Académico
+
+left to right direction
+actor "Estudiante" as E
+
+rectangle "Sistema de Visualización de Contenido" {
+  usecase "Acceder a 'Mis Asignaturas'" as UC1
+  usecase "Ver listado de asignaturas" as UC2
+  usecase "Visualizar progreso personal de asignatura" as UC3
+  usecase "Ordenar asignaturas" as UC4
+  usecase "Filtrar asignaturas" as UC5
+  usecase "Seleccionar una asignatura" as UC6
+  usecase "Ver cabecera de asignatura (título, descripción, objetivos)" as UC7
+  usecase "Ver recursos multimedia agrupados por tipo" as UC8
+  usecase "Reproducir video" as UC9
+  usecase "Previsualizar documento" as UC10
+  usecase "Descargar documento" as UC11
+  usecase "Visitar enlace educativo" as UC12
+  usecase "Ver talleres asociados (pendientes, completados, próximos)" as UC13
+  usecase "Ver detalles de taller pendiente" as UC14
+  usecase "Realizar taller" as UC15
+  usecase "Marcar recurso como favorito" as UC16
+  usecase "Registrar visualización para estadísticas" as UC17
+}
+
+E --> UC1
+E --> UC4
+E --> UC5
+E --> UC6
+E --> UC9
+E --> UC10
+E --> UC11
+E --> UC12
+E --> UC15
+E --> UC16
+
+' Inclusiones obligatorias
+UC1 ..> UC2 : <<include>>
+UC2 ..> UC3 : <<include>> (cada asignatura muestra progreso)
+UC6 ..> UC7 : <<include>> (al seleccionar)
+UC6 ..> UC8 : <<include>> (muestra recursos)
+UC6 ..> UC13 : <<include>> (muestra talleres)
+UC8 ..> UC9 : <<extend>> (si el recurso es video)
+UC8 ..> UC10 : <<extend>> (si es documento)
+UC8 ..> UC11 : <<extend>> (si es documento, puede descargar)
+UC8 ..> UC12 : <<extend>> (si es enlace)
+UC13 ..> UC14 : <<include>> (cada taller muestra detalles)
+UC14 ..> UC15 : <<include>> (desde el detalle se puede realizar)
+UC16 ..> UC17 : <<include>> (al marcar favorito se registra)
+UC2 ..> UC4 : <<extend>> (opcional)
+UC2 ..> UC5 : <<extend>> (opcional)
+
+' Notas explicativas
+note right of UC2
+  Listado organizado por:
+  - Período escolar
+  - Unidad temática
+  - Fecha de publicación
+  Muestra: título, descripción breve,
+  progreso, última actividad, recursos.
+end note
+
+note right of UC7
+  Muestra título completo,
+  descripción detallada,
+  objetivos de aprendizaje.
+end note
+
+note right of UC8
+  Recursos agrupados por tipo:
+  - Video: thumbnail, duración, reproducción
+  - Documento: formato, tamaño, previsualización, descarga
+  - Enlace: descripción, abre en nueva pestaña
+end note
+
+note right of UC13
+  Talleres asociados:
+  - Pendientes (con fecha límite y botón "Realizar")
+  - Completados
+  - Próximos
+end note
+
+note bottom of UC16
+  El estudiante puede marcar
+  recursos como favoritos para
+  acceso rápido.
+end note
+
+note bottom of UC17
+  El sistema registra cada
+  visualización para generar
+  estadísticas de uso.
+end note
+
+@enduml

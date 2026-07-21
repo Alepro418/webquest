@@ -1,0 +1,61 @@
+@startuml
+title Secuencia: Docente - Creación de Nueva Asignatura
+
+actor Docente as D
+participant "Vista Asignaturas" as V
+participant "DocenteController" as C
+participant "AsignaturaModel" as AM
+participant "Session" as S
+database "Base de Datos" as DB
+
+D -> V: Accede a "Gestionar Asignaturas"
+V -> C: index()
+C -> S: obtenerUsuarioActual()
+S --> C: usuario (id_docente)
+C --> V: Muestra listado de asignaturas
+V --> D: Lista de asignaturas existentes
+
+D -> V: Hace clic en "Nueva Asignatura"
+V -> C: create()
+C --> V: Muestra formulario de creación
+V --> D: Formulario para nueva asignatura
+
+D -> V: Ingresa título y descripción
+D -> V: Ingresa objetivos de aprendizaje
+D -> V: Define unidades temáticas
+D -> V: Hace clic en "Guardar"
+V -> C: store(datos_asignatura)
+
+C -> C: validarDatos(datos_asignatura)
+
+alt Datos válidos
+    C -> AM: nuevo()
+    AM -> AM: setTitulo(titulo)
+    AM -> AM: setDescripcion(descripcion)
+    AM -> AM: setObjetivos(objetivos)
+    AM -> AM: setUnidades(unidades)
+    AM -> AM: setIdDocente(id_docente)
+    
+    C -> AM: guardar()
+    AM -> DB: INSERT INTO asignaturas
+    DB --> AM: id_asignatura generado
+    
+    AM --> C: Asignatura creada
+    
+    C --> V: Redirigir con mensaje éxito
+    V --> D: "Asignatura creada exitosamente"
+    V -> C: show(id_asignatura)
+    C -> AM: obtenerPorId(id_asignatura)
+    AM -> DB: SELECT * FROM asignaturas
+    DB --> AM: WHERE id_asignatura = id
+    AM --> C: datos_asignatura
+    C --> V: Muestra detalle de asignatura
+    V --> D: Vista detallada de la asignatura
+    
+else Datos inválidos
+    C --> V: Mostrar errores de validación
+    V --> D: "Complete los campos correctamente"
+    V -> D: Muestra formulario con errores
+end
+
+@enduml

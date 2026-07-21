@@ -1,0 +1,100 @@
+@startuml
+' Configuración general
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor LightBlue
+  BorderColor Black
+  ArrowColor Black
+}
+
+' Definición de actores
+actor "Estudiante" as Student <<Primario>>
+actor "Docente" as Teacher <<Primario>>
+actor "Padre/Representante" as Parent <<Secundario>>
+
+rectangle "SISTEMA WEBQUEST - CIENCIAS NATURALES" {
+  
+  ' === CASOS DE USO GENERALES ===
+  usecase "UC01: Autenticarse en el sistema\n(Iniciar sesión)" as UC01
+  usecase "UC02: Recuperar contraseña\n(5 preguntas de seguridad)" as UC02
+  
+  ' === CASOS DE USO DEL DOCENTE ===
+  rectangle "Módulo Docente" {
+    usecase "UC03: Gestionar asignaturas\n(Crear, editar, eliminar)" as UC03
+    usecase "UC04: Agregar recursos multimedia\n(Videos, enlaces, documentos)" as UC04
+    usecase "UC05: Evaluar entregas\n(Calificar 0-20 pts)" as UC05
+    usecase "UC06: Asignar escala de letras\n(A, B, C, D automático)" as UC06
+    usecase "UC07: Proveer feedback\n(Observaciones cualitativas)" as UC07
+    usecase "UC08: Asignar estatus motivacional\n(Sobresaliente/Bueno/Mejorar)" as UC08
+    usecase "UC09: Monitorear cohorte\n(Vista cuadrícula/lista)" as UC09
+    usecase "UC10: Generar reportes\n(Estadísticas y promedios)" as UC10
+  }
+  
+  ' === CASOS DE USO DEL ESTUDIANTE ===
+  rectangle "Módulo Estudiante" {
+    usecase "UC11: Registrarse en el sistema\n(Supervisado por padre)" as UC11
+    usecase "UC12: Configurar preguntas de seguridad\n(5 preguntas)" as UC12
+    usecase "UC13: Visualizar asignaturas disponibles" as UC13
+    usecase "UC14: Consultar recursos educativos\n(Multimedia)" as UC14
+    usecase "UC15: Realizar taller\n(Trabajo en libreta física)" as UC15
+    usecase "UC16: Subir evidencia fotográfica\n(Foto de libreta)" as UC16
+    usecase "UC17: Consultar calificaciones" as UC17
+    usecase "UC18: Ver estatus motivacional\n(Indicador de progreso)" as UC18
+  }
+  
+  ' === CASO DE USO DEL PADRE ===
+  rectangle "Módulo de Registro" {
+    usecase "UC19: Supervisar y avalar registro\n(Consentimiento)" as UC19
+  }
+  
+  ' === RELACIONES DE ACTORES CON CASOS DE USO ===
+  ' Estudiante
+  Student --> UC01
+  Student --> UC02
+  Student --> UC11
+  Student --> UC12
+  Student --> UC13
+  Student --> UC14
+  Student --> UC15
+  Student --> UC16
+  Student --> UC17
+  Student --> UC18
+  
+  ' Docente
+  Teacher --> UC01
+  Teacher --> UC03
+  Teacher --> UC04
+  Teacher --> UC05
+  Teacher --> UC06
+  Teacher --> UC07
+  Teacher --> UC08
+  Teacher --> UC09
+  Teacher --> UC10
+  
+  ' Padre
+  Parent --> UC19
+  Parent --> UC11
+  
+  ' === RELACIONES ENTRE CASOS DE USO ===
+  ' Inclusiones y extensiones
+  UC03 .> UC04 : <<include>>\nDebe incluir
+  UC05 .> UC06 : <<include>>\nCalcula automático
+  UC05 .> UC07 : <<include>>\nRequerido
+  UC05 .> UC08 : <<extend>>\nOpcional
+  
+  UC11 .> UC12 : <<include>>\nConfiguraciòn obligatoria
+  UC11 .> UC19 : <<include>>\nRequiere aval
+  
+  UC15 .> UC14 : <<extend>>\nPuede consultar
+  UC15 .> UC16 : <<include>>\nEntrega evidencia
+  
+  UC17 .> UC18 : <<include>>\nMuestra estatus
+  
+  ' Generalizaciones
+  UC01 <|-- UC02 : <<extend>>\nRecuperación
+  UC13 <|-- UC14 : <<include>>\nConsulta recursos
+}
+
+@enduml

@@ -1,0 +1,106 @@
+@startuml
+title Actividad: Generar Reportes Académicos
+
+start
+
+:Docente accede a "Reportes";
+:Sistema muestra opciones de reporte:
+
+┌─────────────────────────────────┐
+│ TIPOS DE REPORTE                │
+├─────────────────────────────────┤
+│ 1. Reporte General de Cohorte   │
+│ 2. Reporte Individual           │
+│ 3. Reporte por Asignatura       │
+│ 4. Reporte de Entregas          │
+│ 5. Reporte de Estatus           │
+└─────────────────────────────────┘
+
+:Docente selecciona tipo de reporte;
+
+if (tipo = General de Cohorte) then
+  :Sistema solicita filtros:
+  - Grado(s) a incluir
+  - Período (fechas)
+  - Asignatura(s) específica;
+  
+  :Sistema genera reporte con:
+  - Listado completo de estudiantes
+  - Promedios generales
+  - Total de entregas por estudiante
+  - Distribución de calificaciones
+  - Gráfico de rendimiento grupal;
+  
+else if (tipo = Individual) then
+  :Sistema muestra buscador de estudiantes;
+  :Docente selecciona estudiante;
+  
+  :Sistema genera reporte con:
+  - Datos personales del estudiante
+  - Historial completo de evaluaciones
+  - Gráfico de evolución personal
+  - Comparativa con promedio grupal
+  - Asistencia/participación
+  - Observaciones acumuladas;
+  
+else if (tipo = Por Asignatura) then
+  :Docente selecciona asignatura;
+  
+  :Sistema genera reporte con:
+  - Desempeño por taller/actividad
+  - Promedio de la asignatura
+  - Distribución de escalas (A,B,C,D)
+  - Estudiantes destacados
+  - Estudiantes que requieren apoyo;
+  
+else if (tipo = Entregas) then
+  :Sistema solicita rango de fechas;
+  
+  :Sistema genera reporte con:
+  - Total de entregas por día/semana
+  - Tasa de entregas a tiempo vs tardías
+  - Entregas pendientes de evaluar
+  - Tiempo promedio de evaluación;
+  
+else if (tipo = Estatus) then
+  :Sistema genera reporte con:
+  - Distribución de estatus motivacionales
+  - Evolución de estatus por período
+  - Listado por cada categoría
+  - Recomendaciones automáticas;
+endif
+
+== CONFIGURACIÓN DE FORMATO ==
+:Docente selecciona formato de salida:
+
+if (PDF) then
+  :Sistema genera documento formateado;
+  :Incluye gráficos y tablas;
+  :Añade logo y encabezado institucional;
+  :Permite descargar;
+  
+else if (Excel) then
+  :Sistema genera archivo .xlsx;
+  :Incluye múltiples hojas con datos;
+  :Permite análisis posterior;
+  
+else if (CSV) then
+  :Sistema genera datos en formato plano;
+  :Para importar a otros sistemas;
+  
+else if (Visualización) then
+  :Muestra reporte interactivo en pantalla;
+  :Permite filtrar y explorar datos;
+endif
+
+:Docente puede programar reportes automáticos:
+- Diarios
+- Semanales
+- Mensuales
+- Al finalizar período;
+
+:Sistema guarda reportes generados en historial;
+:Docente puede consultar reportes anteriores;
+
+stop
+@enduml

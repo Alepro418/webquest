@@ -1,0 +1,106 @@
+@startuml
+title Secuencia: Estudiante - Realización de Taller con Entrega Fotográfica
+
+actor Estudiante as E
+participant "Vista Taller" as V
+participant "EstudianteController" as C
+participant "TallerModel" as TM
+participant "EntregaModel" as EM
+participant "ImagenHelper" as IH
+participant "Session" as S
+database "Base de Datos" as DB
+participant "Sistema Archivos" as FS
+
+E -> V: Selecciona "Realizar Taller" desde asignatura
+V -> C: realizarTaller(id_taller)
+C -> S: obtenerUsuarioActual()
+S --> C: estudiante (id, nombre)
+
+C -> TM: obtenerPorId(id_taller)
+TM -> DB: SELECT * FROM talleres WHERE id_taller = ?
+DB --> TM: datos_taller
+
+C -> EM: verificarEntregaExistente(id_estudiante, id_taller)
+EM -> DB: SELECT * FROM entregas_taller WHERE id_estudiante = ? AND id_taller = ?
+DB --> EM: entrega_existente
+EM --> C: entrega_existente
+
+alt Entrega ya existe
+    C --> V: Mostrar advertencia
+    V --> E: "Ya realizaste este taller. ¿Reemplazar?"
+    
+    alt Reemplazar
+        E -> V: Confirma reemplazo
+        V -> C: reemplazarEntrega(id_taller)
+        C -> EM: eliminarEntregaAnterior(id_estudiante, id_taller)
+        EM -> DB: DELETE FROM entregas_taller WHERE id_estudiante = ? AND id_taller = ?
+        DB --> EM: Confirmación
+        C -> FS: eliminarImagenAnterior(ruta)
+        FS --> C: Confirmación
+        C --> V: Continuar con nueva entrega
+    else Cancelar
+        V --> E: Regresa a vista anterior
+        return
+    end
+end
+
+C --> V: Muestra página del taller
+V --> E: Muestra página del taller
+note right of E
+    - Instrucciones detalladas
+    - Recursos de apoyo
+    - Área de subida
+end note
+
+== Trabajo en libreta física (offline) ==
+note right of E: El estudiante trabaja en su libreta física
+
+== Subida de evidencia fotográfica ==
+E -> V: Selecciona "Subir Foto"
+V -> IH: mostrarInterfazSubida()
+IH --> V: Visor de cámara/selector
+
+E -> V: Toma foto o selecciona de galería
+V -> IH: procesarImagen(archivo)
+
+IH -> IH: validarFormato(archivo)
+IH -> IH: validarTamaño(archivo)
+IH -> IH: validarResolucion(archivo)
+
+alt Imagen válida
+    IH -> IH: optimizarImagen(archivo)
+    IH -> IH: generarNombreUnico()
+    IH --> V: vista_previa
+    
+    V --> E: Muestra vista previa de la imagen
+    E -> V: Confirma que la imagen es correcta
+    
+    V -> C: subirEvidencia(id_taller, imagen)
+    C -> IH: guardarImagen(imagen, id_estudiante)
+    IH -> FS: /public/uploads/entregas/[año]/[mes]/
+    FS --> IH: ruta_archivo
+    IH --> C: ruta_completa
+    
+    C -> EM: nuevaEntrega()
+    EM -> EM: setIdEstudiante(id_estudiante)
+    EM -> EM: setIdTaller(id_taller)
+    EM -> EM: setIdAsignatura(taller.id_asignatura)
+    EM -> EM: setRutaFotografia(ruta_completa)
+    EM -> EM: setFechaEnvio(NOW())
+    EM -> EM: setEstado('pendiente')
+    
+    C -> EM: guardar()
+    EM -> DB: INSERT INTO entregas_taller
+    DB --> EM: id_entrega
+    
+    C --> V: Entrega exitosa
+    V --> E: "¡Taller entregado correctamente!"
+    V -> E: Muestra comprobante de entrega
+    
+else Imagen inválida
+    IH --> V: error_específico
+    V --> E: "La imagen no cumple los requisitos"
+    V -> E: Muestra especificaciones (formato, tamaño, resolución)
+end
+
+@enduml

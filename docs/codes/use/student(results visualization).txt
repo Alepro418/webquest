@@ -1,0 +1,43 @@
+@startuml
+title Casos de Uso - Estatus Motivacional y Mensajes Automáticos
+
+left to right direction
+actor "Sistema" as S
+actor "Estudiante" as E
+
+rectangle "Módulo de Evaluación" {
+  usecase "Calcular estatus motivacional" as UC1
+  usecase "Obtener últimas 5 evaluaciones" as UC2
+  usecase "Aplicar promedio ponderado" as UC3
+  usecase "Determinar estatus según umbral" as UC4
+  usecase "Enviar mensaje automático" as UC5
+  usecase "Actualizar estatus en BD" as UC6
+}
+
+S --> UC1
+UC1 ..> UC2 : <<include>>
+UC1 ..> UC3 : <<include>>
+UC1 ..> UC4 : <<include>>
+UC1 ..> UC5 : <<include>>
+UC1 ..> UC6 : <<include>>
+
+note right of UC3
+  Fórmula: 
+  (E1*0.15 + E2*0.15 + E3*0.20 + E4*0.25 + E5*0.25)
+end note
+
+note right of UC4
+  Umbrales:
+  - >= 18 → Sobresaliente
+  - 12 a 17.99 → Buen estudiante
+  - < 12 → Vamos a mejorar
+end note
+
+note right of UC5
+  Mensajes automáticos:
+  - Sobresaliente: "¡Sigue brillando!"
+  - Buen estudiante: "¡Vas por excelente camino!"
+  - Vamos a mejorar: "¡Tú puedes, cuenta con nosotros!"
+end note
+
+@enduml

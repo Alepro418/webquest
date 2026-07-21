@@ -1,0 +1,124 @@
+@startuml
+title Diagrama de Clases Completo - Sistema Webquest (Vista Integrada)
+
+' ==============================================
+' PAQUETES POR MÓDULO
+' ==============================================
+
+package "Módulo de Autenticación" {
+    class Usuario
+    class PreguntaSeguridad
+    class Sesion
+    enum RolUsuario
+    enum EstadoSesion
+}
+
+package "Módulo de Usuarios" {
+    class Docente
+    class Estudiante
+    class Representante
+    class Persona
+}
+
+package "Módulo Académico" {
+    class Asignatura
+    class Unidad
+    class Recurso
+    class Video
+    class Documento
+    class Enlace
+    enum TipoRecurso
+    enum EstadoAsignatura
+}
+
+package "Módulo de Taller" {
+    class Taller
+    class Entrega
+    class Imagen
+    class Evidencia
+    enum EstadoEntrega
+    enum TipoTaller
+}
+
+package "Módulo de Evaluación" {
+    class Evaluacion
+    class CriterioEvaluacion
+    class Retroalimentacion
+    class HistorialAcademico
+    class Promedio
+    enum EscalaLetra
+    enum EstatusMotivacional
+}
+
+package "Módulo de Reportes" {
+    class Reporte
+    class Estadistica
+    class Dashboard
+    class Widget
+    class Metrica
+    enum TipoReporte
+    enum FormatoReporte
+}
+
+' ==============================================
+' RELACIONES ENTRE PAQUETES
+' ==============================================
+
+' Usuario y Seguridad
+Usuario "1" -- "1" PreguntaSeguridad : tiene
+Usuario "1" -- "0..*" Sesion : genera
+Usuario <|-- Docente
+Usuario <|-- Estudiante
+Persona <|-- Usuario
+Persona <|-- Representante
+
+' Relaciones Docente
+Docente "1" -- "0..*" Asignatura : crea
+Docente "1" -- "0..*" Evaluacion : realiza
+
+' Relaciones Estudiante
+Estudiante "1" -- "0..*" Entrega : realiza
+Estudiante "1" -- "0..*" Evaluacion : recibe
+Estudiante "1" -- "1" HistorialAcademico : tiene
+Estudiante "1" -- "0..*" Promedio : posee
+Representante "1" -- "0..*" Estudiante : representa
+
+' Relaciones Académicas
+Asignatura "1" -- "0..*" Unidad : contiene
+Asignatura "1" -- "0..*" Recurso : tiene
+Asignatura "1" -- "0..*" Taller : incluye
+Unidad "1" -- "0..*" Recurso : incluye
+Unidad "1" -- "0..*" Taller : contiene
+Recurso <|-- Video
+Recurso <|-- Documento
+Recurso <|-- Enlace
+
+' Relaciones Taller
+Taller "1" -- "0..*" Entrega : genera
+Entrega "1" -- "1..*" Imagen : contiene
+Entrega "1" -- "0..*" Evidencia : puede tener
+Entrega "1" -- "0..1" Evaluacion : genera
+
+' Relaciones Evaluación
+Evaluacion "1" -- "0..*" CriterioEvaluacion : evalúa
+Evaluacion "1" -- "0..*" Retroalimentacion : contiene
+
+' Relaciones Reportes
+Reporte "1" -- "0..*" Estadistica : utiliza
+Dashboard "1" -- "0..*" Widget : contiene
+Widget "1" -- "0..*" Metrica : muestra
+Docente "1" -- "0..*" Reporte : genera
+Docente "1" -- "1" Dashboard : posee
+
+' ==============================================
+' LEYENDA DE MULTIPLICIDADES
+' ==============================================
+note top of Usuario
+  Leyenda:
+  1 : Uno
+  0..* : Cero o muchos
+  1..* : Uno o muchos
+  0..1 : Cero o uno
+end note
+
+@enduml

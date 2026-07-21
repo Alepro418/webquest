@@ -1,0 +1,83 @@
+@startuml
+title Secuencia: Registro de Estudiante con Supervisión Parental
+
+actor Estudiante as E
+actor Representante as R
+participant "Vista Registro" as V
+participant "AuthController" as C
+participant "UsuarioModel" as UM
+participant "PreguntaSeguridadModel" as PM
+database "Base de Datos" as DB
+
+== Paso 1: Datos del Representante ==
+R -> V: Accede a formulario de registro
+V -> R: Muestra formulario datos representante
+R -> V: Ingresa nombre, cédula, teléfono
+R -> V: Hace clic en "Continuar"
+V -> C: guardarDatosRepresentante(datos)
+
+C -> C: validarDatosRepresentante()
+C --> V: Datos válidos, pasar a paso 2
+
+== Paso 2: Datos del Estudiante ==
+V -> E: Muestra formulario datos estudiante
+E -> V: Ingresa nombre completo, grado
+E -> V: Hace clic en "Continuar"
+V -> C: guardarDatosEstudiante(datos)
+
+C -> C: validarDatosEstudiante()
+C --> V: Datos válidos, pasar a paso 3
+
+== Paso 3: Credenciales ==
+V -> E: Muestra formulario de credenciales
+E -> V: Ingresa nombre_usuario
+V -> C: verificarDisponibilidad(usuario)
+C -> UM: existeUsuario(usuario)
+UM -> DB: SELECT COUNT(*) FROM usuarios
+DB --> UM: WHERE nombre_usuario = usuario
+UM --> C: true/false
+
+alt Usuario disponible
+    C --> V: Usuario disponible
+    E -> V: Ingresa contraseña y confirmación
+    V -> C: validarContraseña(password)
+    
+    alt Contraseña válida
+        C --> V: Contraseña válida, pasar a paso 4
+    else Contraseña inválida
+        C --> V: Mostrar requisitos de seguridad
+        V --> E: Muestra error
+    end
+else Usuario no disponible
+    C --> V: Usuario no disponible
+    V --> E: Sugiere alternativas
+end
+
+== Paso 4: Preguntas de Seguridad ==
+V -> E: Muestra 5 preguntas predefinidas
+loop 5 veces
+    E -> V: Selecciona pregunta y escribe respuesta
+    V -> C: guardarPregunta(numero, pregunta, respuesta)
+    C -> PM: hashRespuesta(respuesta)
+    PM --> C: hash_generado
+    C -> C: almacenar temporalmente
+end
+
+== Paso 5: Confirmación y Aval ==
+V -> R: Muestra resumen de todos los datos
+R -> V: Confirma y da aval
+V -> C: confirmarRegistro()
+
+C -> UM: crearUsuario(datos_estudiante)
+UM -> DB: INSERT INTO usuarios
+DB --> UM: id_usuario generado
+
+C -> PM: guardarPreguntas(id_usuario, preguntas_hash)
+PM -> DB: INSERT INTO preguntas_seguridad
+DB --> PM: Confirmación
+
+C -> V: Registro exitoso
+V --> R: Muestra comprobante
+V --> E: Redirige a login
+
+@enduml

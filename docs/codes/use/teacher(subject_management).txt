@@ -1,0 +1,138 @@
+@startuml
+title Diagrama de Casos de Uso - Gestión de Asignaturas
+
+left to right direction
+actor "Docente" as D
+
+rectangle "Sistema de Gestión de Asignaturas" {
+  usecase "Gestionar asignaturas" as UC1
+  usecase "Ver listado de asignaturas" as UC2
+  usecase "Crear nueva asignatura" as UC3
+  usecase "Ingresar título" as UC4
+  usecase "Ingresar descripción" as UC5
+  usecase "Definir objetivos de aprendizaje" as UC6
+  usecase "Estructurar unidades temáticas" as UC7
+  usecase "Validar campos obligatorios" as UC8
+  usecase "Guardar nueva asignatura" as UC9
+  usecase "Asignar ID único" as UC10
+  usecase "Registrar fecha de creación" as UC11
+  usecase "Editar asignatura" as UC12
+  usecase "Cargar datos existentes" as UC13
+  usecase "Realizar cambios" as UC14
+  usecase "Validar modificaciones" as UC15
+  usecase "Actualizar registro" as UC16
+  usecase "Registrar fecha de modificación" as UC17
+  usecase "Eliminar asignatura" as UC18
+  usecase "Verificar dependencias" as UC19
+  usecase "Mostrar recursos afectados" as UC20
+  usecase "Confirmar eliminación en cascada" as UC21
+  usecase "Eliminar recursos asociados" as UC22
+  usecase "Eliminar asignatura" as UC23
+  usecase "Registrar eliminación en log" as UC24
+  usecase "Duplicar asignatura" as UC25
+  usecase "Crear copia con prefijo 'Copia de'" as UC26
+  usecase "Editar título de copia" as UC27
+  usecase "Mantener estructura de recursos" as UC28
+}
+
+D --> UC1
+D --> UC3
+D --> UC12
+D --> UC18
+D --> UC25
+
+' Inclusiones obligatorias
+UC1 ..> UC2 : <<include>>
+UC3 ..> UC4 : <<include>>
+UC3 ..> UC5 : <<include>>
+UC3 ..> UC6 : <<include>>
+UC3 ..> UC7 : <<include>>
+UC3 ..> UC8 : <<include>>
+UC8 ..> UC9 : <<include>> (si válido)
+UC9 ..> UC10 : <<include>>
+UC9 ..> UC11 : <<include>>
+
+' Edición
+UC12 ..> UC13 : <<include>>
+UC12 ..> UC14 : <<include>>
+UC12 ..> UC15 : <<include>>
+UC15 ..> UC16 : <<include>> (si válido)
+UC16 ..> UC17 : <<include>>
+
+' Eliminación
+UC18 ..> UC19 : <<include>>
+UC19 ..> UC20 : <<extend>> (si tiene recursos asociados)
+UC20 ..> UC21 : <<include>> (solicita confirmación)
+UC21 ..> UC22 : <<include>> (si confirma)
+UC22 ..> UC23 : <<include>>
+UC23 ..> UC24 : <<include>>
+UC19 ..> UC23 : <<include>> (si no tiene recursos)
+
+' Duplicación
+UC25 ..> UC26 : <<include>>
+UC25 ..> UC27 : <<include>>
+UC25 ..> UC28 : <<include>>
+
+' Notas explicativas
+note right of UC4
+  Título obligatorio.
+  Mínimo 5 caracteres.
+end note
+
+note right of UC5
+  Descripción obligatoria.
+  Mínimo 50 caracteres.
+end note
+
+note right of UC6
+  Definir al menos 1 objetivo.
+  Máximo 10 objetivos.
+end note
+
+note right of UC7
+  Estructurar entre 1 y 8 unidades.
+end note
+
+note right of UC8
+  Valida que todos los campos
+  obligatorios estén completos
+  y cumplan las reglas de negocio.
+  Si hay error, resalta y solicita corrección.
+end note
+
+note right of UC12
+  Solo el docente creador puede
+  modificar la asignatura.
+end note
+
+note right of UC19
+  Verifica si la asignatura tiene
+  recursos (videos, documentos, enlaces)
+  o talleres asociados.
+end note
+
+note right of UC20
+  Si tiene recursos, muestra
+  la lista de elementos afectados
+  para que el docente confirme.
+end note
+
+note right of UC21
+  El docente debe confirmar
+  la eliminación en cascada.
+  Si cancela, se detiene la operación.
+end note
+
+note right of UC25
+  Crea una copia exacta de la
+  asignatura con el prefijo "Copia de".
+  El docente puede editar el título
+  después de la duplicación.
+end note
+
+note bottom of UC26
+  Mantiene la estructura completa:
+  unidades, recursos y talleres.
+end note
+
+@enduml

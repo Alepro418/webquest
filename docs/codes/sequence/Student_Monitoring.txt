@@ -1,0 +1,84 @@
+@startuml
+title Secuencia: Docente - Monitoreo de Cohorte Estudiantil
+
+actor Docente as D
+participant "Vista Monitoreo" as V
+participant "DocenteController" as C
+participant "EstudianteModel" as EstM
+participant "EntregaModel" as EM
+participant "EvaluacionModel" as EVM
+database "Base de Datos" as DB
+
+D -> V: Accede a "Monitoreo de Cohorte"
+V -> C: monitoreo()
+C -> EstM: obtenerEstudiantesPorGrado(grado_docente)
+EstM -> DB: SELECT * FROM usuarios WHERE rol = 'estudiante'
+DB --> EstM: lista_estudiantes
+
+loop por cada estudiante
+    EstM -> EM: contarEntregas(id_estudiante)
+    EM -> DB: SELECT COUNT(*) FROM entregas_taller WHERE id_estudiante = id
+    DB --> EM: total_entregas
+    EM --> EstM: total_entregas
+    
+    EstM -> EVM: obtenerPromedio(id_estudiante)
+    EVM -> DB: SELECT AVG(puntaje) FROM evaluaciones WHERE id_estudiante = id
+    DB --> EVM: promedio
+    EVM --> EstM: promedio
+    
+    EstM -> EVM: obtenerUltimaEvaluacion(id_estudiante)
+    EVM -> DB: SELECT * FROM evaluaciones WHERE id_estudiante = id ORDER BY fecha DESC LIMIT 1
+    DB --> EVM: ultima_evaluacion
+    EVM --> EstM: ultima_evaluacion
+    
+    EstM -> EstM: agregarDatos(entregas, promedio, ultima)
+end
+
+EstM --> C: estudiantes_con_datos
+C --> V: Muestra dashboard
+V --> D: Visualización inicial
+note right of D
+    - Vista general de cohorte
+    - Gráficos de rendimiento
+    - Alertas
+end note
+
+== Filtrado y Ordenamiento ==
+D -> V: Aplica filtro (por grado, estatus, etc.)
+V -> C: filtrarEstudiantes(filtros)
+C -> EstM: aplicarFiltros(filtros)
+EstM --> C: estudiantes_filtrados
+C --> V: Actualiza visualización
+V --> D: Muestra estudiantes filtrados
+
+== Vista Detalle Individual ==
+D -> V: Selecciona estudiante específico
+V -> C: detalleEstudiante(id_estudiante)
+C -> EstM: obtenerDetalleCompleto(id_estudiante)
+EstM -> DB: SELECT * FROM usuarios WHERE id_usuario = id
+DB --> EstM: datos_personales
+
+EstM -> EM: obtenerTodasEntregas(id_estudiante)
+EM -> DB: SELECT * FROM entregas_taller WHERE id_estudiante = id ORDER BY fecha_envio DESC
+DB --> EM: historial_entregas
+EM --> EstM: historial_entregas
+
+loop por cada entrega
+    EstM -> EVM: obtenerEvaluacion(id_entrega)
+    EVM -> DB: SELECT * FROM evaluaciones WHERE id_entrega = id
+    DB --> EVM: evaluacion
+    EVM --> EstM: evaluacion
+    EstM -> EstM: combinarDatos(entrega, evaluacion)
+end
+
+EstM --> C: detalle_completo
+C --> V: Muestra vista detallada
+V --> D: Muestra detalle completo
+note right of D
+    - Perfil del estudiante
+    - Historial de entregas
+    - Gráfico de evolución
+    - Observaciones acumuladas
+end note
+
+@enduml

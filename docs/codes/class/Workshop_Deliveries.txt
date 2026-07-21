@@ -1,0 +1,193 @@
+@startuml
+title Diagrama de Clases - Módulo de Taller y Entregas
+
+' ==============================================
+' ENUMS
+' ==============================================
+enum EstadoEntrega {
+    PENDIENTE
+    ENTREGADA
+    RECHAZADA
+    EVALUADA
+    RE_ENTREGADA
+}
+
+enum TipoTaller {
+    INDIVIDUAL
+    GRUPAL
+    INVESTIGACION
+    PRACTICO
+}
+
+' ==============================================
+' CLASES PRINCIPALES
+' ==============================================
+class Taller {
+    - id_taller: int
+    - id_asignatura: int
+    - id_unidad: int
+    - titulo: string
+    - descripcion: text
+    - instrucciones: text
+    - criterios_evaluacion: text
+    - fecha_publicacion: datetime
+    - fecha_limite: datetime
+    - tipo: TipoTaller
+    - puntaje_maximo: int (20)
+    - recursos_asociados: Array
+    - permite_re_entrega: boolean
+    - max_intentos: int
+    + publicar(): void
+    + extenderFechaLimite(nueva_fecha): void
+    + obtenerEntregas(): Array
+    + obtenerEstadisticas(): Array
+    + duplicar(): Taller
+    + cerrar(): void
+}
+
+class Entrega {
+    - id_entrega: int
+    - id_taller: int
+    - id_estudiante: int
+    - id_asignatura: int
+    - ruta_fotografia: string
+    - fecha_envio: timestamp
+    - fecha_modificacion: timestamp
+    - estado: EstadoEntrega
+    - observaciones_estudiante: text
+    - numero_intento: int
+    - ip_origen: string
+    - metadata_imagen: JSON
+    + actualizarEstado(estado): void
+    + obtenerEvaluacion(): Evaluacion
+    + esReemplazable(): boolean
+    + obtenerUrlImagen(): string
+    + validarImagen(): boolean
+}
+
+class Imagen {
+    - id_imagen: int
+    - id_entrega: int
+    - nombre_archivo: string
+    - ruta_archivo: string
+    - tamaño: int
+    - formato: string
+    - ancho: int
+    - alto: int
+    - hash: string
+    - fecha_subida: datetime
+    + generarMiniatura(): string
+    + optimizar(): void
+    + rotar(grados): void
+    + obtenerMetadata(): Array
+    + esLegible(): boolean
+}
+
+class Evidencia {
+    - id_evidencia: int
+    - id_entrega: int
+    - tipo_evidencia: string (foto, video, audio)
+    - archivo: string
+    - descripcion: string
+    + procesarArchivo(): void
+    + validarContenido(): boolean
+}
+
+' ==============================================
+' CONTROLADORES
+' ==============================================
+class TallerController {
+    - tallerModel: TallerModel
+    - entregaModel: EntregaModel
+    + index(asignatura_id): Response
+    + show(id): Response
+    + create(asignatura_id): Response
+    + store(request): Response
+    + edit(id): Response
+    + update(request, id): Response
+    + destroy(id): Response
+    + publicar(id): Response
+    + cerrar(id): Response
+    + verEntregas(id): Response
+    + exportarEntregas(id): Response
+}
+
+class EntregaController {
+    - entregaModel: EntregaModel
+    - imagenModel: ImagenModel
+    - tallerModel: TallerModel
+    + create(taller_id): Response
+    + store(request): Response
+    + show(id): Response
+    + edit(id): Response
+    + update(request, id): Response
+    + destroy(id): Response
+    + uploadImage(request): Response
+    + validateImage(request): Response
+    + reemplazarEntrega(id, request): Response
+    + verHistorial(estudiante_id): Response
+}
+
+class ImagenController {
+    - imagenModel: ImagenModel
+    + upload(request): Response
+    + process(image): Response
+    + validate(image): boolean
+    + getMetadata(image): Array
+    + serve(id, tamaño): Response
+    + delete(id): Response
+}
+
+' ==============================================
+' VISTAS
+' ==============================================
+class TallerView {
+    + renderList(talleres): string
+    + renderDetail(taller, estudiante): string
+    + renderForm(taller, modo): string
+    + renderInstrucciones(taller): string
+    + renderEntregas(entregas): string
+}
+
+class EntregaView {
+    + renderForm(taller_id): string
+    + renderUpload(): string
+    + renderPreview(imagen): string
+    + renderConfirmation(entrega): string
+    + renderHistorial(entregas): string
+    + renderComprobante(entrega): string
+}
+
+class ImagenView {
+    + renderUploader(): string
+    + renderPreview(image): string
+    + renderEditor(image): string
+    + renderZoom(image): string
+}
+
+' ==============================================
+' RELACIONES
+' ==============================================
+Taller "1" -- "0..*" Entrega : genera
+Taller "*" -- "1" Asignatura : pertenece
+
+Entrega "1" -- "1..*" Imagen : contiene
+Entrega "1" -- "0..1" Evaluacion : tiene
+Entrega "1" -- "0..*" Evidencia : puede tener
+
+Estudiante "1" -- "0..*" Entrega : realiza
+
+TallerController --> Taller
+TallerController --> Entrega
+
+EntregaController --> Entrega
+EntregaController --> Imagen
+EntregaController --> Taller
+
+ImagenController --> Imagen
+
+TallerView --> TallerController
+EntregaView --> EntregaController
+ImagenView --> ImagenController
+
+@enduml

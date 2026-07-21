@@ -1,0 +1,103 @@
+@startuml
+title Diagrama de Clases General - Sistema Webquest (MVC)
+
+' ==============================================
+' ESTEREOTIPOS PARA MVC
+' ==============================================
+abstract class Model {
+    # db: ConexionBD
+    # table: string
+    # primaryKey: string
+    + find(id): Object
+    + all(): Array
+    + save(): boolean
+    + delete(): boolean
+    + validate(): boolean
+}
+
+abstract class View {
+    + render(template, data): string
+    + redirect(url): void
+    + setLayout(layout): void
+    + addAsset(type, path): void
+}
+
+abstract class Controller {
+    # model: Model
+    # view: View
+    + __construct(model, view)
+    + index(): Response
+    + create(): Response
+    + store(request): Response
+    + show(id): Response
+    + edit(id): Response
+    + update(request, id): Response
+    + destroy(id): Response
+}
+
+' ==============================================
+' CONTROLADORES PRINCIPALES
+' ==============================================
+class AuthController {
+    + login(request): Response
+    + logout(): Response
+    + register(request): Response
+    + recoverPassword(request): Response
+    + validateSecurityQuestions(request): Response
+    + resetPassword(request): Response
+}
+
+class DocenteController {
+    + dashboard(): Response
+    + gestionarAsignaturas(): Response
+    + evaluarEntregas(): Response
+    + monitorearEstudiantes(): Response
+    + generarReportes(): Response
+    + gestionarRecursos(): Response
+}
+
+class EstudianteController {
+    + dashboard(): Response
+    + verAsignaturas(): Response
+    + verTalleres(): Response
+    + realizarTaller(id): Response
+    + subirEvidencia(request): Response
+    + verResultados(): Response
+    + verEstatusMotivacional(): Response
+}
+
+' ==============================================
+' RELACIONES
+' ==============================================
+Controller <|-- AuthController
+Controller <|-- DocenteController
+Controller <|-- EstudianteController
+
+Model <|-- UsuarioModel
+Model <|-- PreguntaSeguridadModel
+Model <|-- AsignaturaModel
+Model <|-- RecursoModel
+Model <|-- EntregaModel
+Model <|-- EvaluacionModel
+
+View <|-- AuthView
+View <|-- DocenteView
+View <|-- EstudianteView
+View <|-- LayoutView
+
+DocenteController --> UsuarioModel
+DocenteController --> AsignaturaModel
+DocenteController --> RecursoModel
+DocenteController --> EntregaModel
+DocenteController --> EvaluacionModel
+
+EstudianteController --> UsuarioModel
+EstudianteController --> AsignaturaModel
+EstudianteController --> RecursoModel
+EstudianteController --> EntregaModel
+EstudianteController --> EvaluacionModel
+
+AuthController --> UsuarioModel
+AuthController --> PreguntaSeguridadModel
+
+@enduml

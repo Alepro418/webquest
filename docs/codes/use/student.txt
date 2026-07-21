@@ -1,0 +1,46 @@
+@startuml
+title Diagrama de Casos de Uso - Flujo de Trabajo del Estudiante
+
+left to right direction
+actor "Estudiante" as E
+rectangle "Sistema de Gestión de Talleres" {
+  usecase "Iniciar sesión" as UC1
+  usecase "Registrar usuario" as UC2
+  usecase "Recuperar contraseña" as UC3
+  usecase "Ver asignaturas disponibles" as UC4
+  usecase "Consultar recursos educativos" as UC5
+  usecase "Realizar taller" as UC6
+  usecase "Consultar resultados" as UC7
+  usecase "Configurar perfil" as UC8
+  usecase "Cerrar sesión" as UC9
+  usecase "Visualizar dashboard" as UC10
+}
+
+E --> UC1
+E --> UC2
+E --> UC3
+E --> UC4
+E --> UC5
+E --> UC6
+E --> UC7
+E --> UC8
+E --> UC9
+E --> UC10
+
+' Relaciones de extensión
+UC3 ..> UC1 : <<extend>>\n(si olvida contraseña)
+UC1 ..> UC10 : <<include>>\n(tras acceso exitoso)
+UC4 ..> UC5 : <<include>>\n(para ver recursos)
+UC6 ..> UC7 : <<extend>>\n(para ver resultados tras taller)
+UC8 ..> UC1 : <<extend>>\n(cambios de perfil requieren autenticación)
+
+note right of UC3
+  Responde 5 preguntas de seguridad
+  Bloqueo tras 3 fallos
+end note
+
+note right of UC6
+  Trabajo en libreta física
+  Sube evidencia fotográfica
+end note
+@enduml

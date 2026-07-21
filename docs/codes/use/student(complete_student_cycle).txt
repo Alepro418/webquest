@@ -1,0 +1,49 @@
+@startuml
+title Actividad: Ciclo de Vida Académico - Rol Estudiante
+
+start
+
+:Inicio del período escolar;
+
+fork
+  === EXPLORACIÓN ===
+  :Revisa nuevas asignaturas publicadas;
+  :Explora recursos multimedia;
+  :Planifica tiempo de estudio;
+  :Selecciona próximos talleres;
+  
+fork again
+  === APRENDIZAJE ===
+  :Estudia contenido de Ciencias Naturales;
+  :Visualiza videos educativos;
+  :Lee documentos de apoyo;
+  :Consulta enlaces recomendados;
+  :Toma apuntes en libreta física;
+  
+fork again
+  === PRÁCTICA ===
+  :Realiza actividades en libreta;
+  :Aplica conceptos aprendidos;
+  :Desarrolla ejercicios prácticos;
+  :Prepara entregas de taller;
+  :Toma fotos de evidencias;
+  :Sube trabajos a plataforma;
+  
+fork again
+  === RETROALIMENTACIÓN ===
+  :Recibe evaluaciones del docente;
+  :Lee observaciones y feedback;
+  :Revisa calificaciones obtenidas;
+  :Analiza áreas de mejora;
+  :Consulta estatus motivacional;
+  :Establece metas de mejora;
+endfork
+
+:Fin del período académico;
+
+:Sistema genera resumen de logros;
+:Estudiante visualiza su progreso anual;
+:Recibe reconocimientos por logros;
+
+stop
+@enduml

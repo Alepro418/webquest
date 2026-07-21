@@ -1,0 +1,85 @@
+@startuml
+title Diagrama de Casos de Uso - Flujo de Trabajo del Docente
+
+left to right direction
+actor "Docente" as D
+
+rectangle "Sistema de Gestión Académica" {
+  usecase "Iniciar sesión" as UC1
+  usecase "Cerrar sesión" as UC2
+  usecase "Gestionar contenido" as UC3
+  usecase "Administrar asignaturas" as UC4
+  usecase "Administrar recursos educativos" as UC5
+  usecase "Evaluar entregas" as UC6
+  usecase "Revisar trabajos estudiantiles" as UC7
+  usecase "Asignar calificaciones y feedback" as UC8
+  usecase "Monitorear cohorte" as UC9
+  usecase "Visualizar estadísticas de cohorte" as UC10
+  usecase "Revisar progreso individual" as UC11
+  usecase "Generar reportes académicos" as UC12
+  usecase "Exportar datos" as UC13
+  usecase "Guardar cambios automáticamente" as UC14
+  usecase "Registrar intento fallido de acceso" as UC15
+}
+
+D --> UC1
+D --> UC2
+D --> UC3
+D --> UC6
+D --> UC9
+D --> UC12
+
+' Relaciones de inclusión (acciones obligatorias dentro de cada módulo)
+UC3 ..> UC4 : <<include>>
+UC3 ..> UC5 : <<include>>
+UC6 ..> UC7 : <<include>>
+UC6 ..> UC8 : <<include>>
+UC9 ..> UC10 : <<include>>
+UC9 ..> UC11 : <<include>>
+UC12 ..> UC13 : <<include>>
+
+' Guardar cambios ocurre después de cualquier módulo (se incluye en cada uno)
+UC3 ..> UC14 : <<include>>
+UC6 ..> UC14 : <<include>>
+UC9 ..> UC14 : <<include>>
+UC12 ..> UC14 : <<include>>
+
+' Registro de intento fallido (extensión de inicio de sesión)
+UC1 ..> UC15 : <<extend>> (si falla)
+
+note right of UC1
+  El docente ingresa credenciales.
+  Si son válidas, accede al panel.
+  Si fallan, se registra el intento.
+end note
+
+note right of UC3
+  Administra asignaturas y recursos
+  (videos, documentos, enlaces)
+end note
+
+note right of UC6
+  Revisa entregas pendientes,
+  asigna puntaje (0-20),
+  escribe observaciones y feedback.
+end note
+
+note right of UC9
+  Visualiza estadísticas grupales
+  y progreso individual de cada
+  estudiante.
+end note
+
+note right of UC12
+  Genera informes en PDF/Excel
+  con datos académicos y
+  permite exportarlos.
+end note
+
+note bottom of UC14
+  El sistema guarda automáticamente
+  los cambios realizados por el docente
+  en cada módulo.
+end note
+
+@enduml

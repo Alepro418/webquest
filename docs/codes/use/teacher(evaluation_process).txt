@@ -1,0 +1,119 @@
+@startuml
+title Diagrama de Casos de Uso - Evaluación de Entregas
+
+left to right direction
+actor "Docente" as D
+
+rectangle "Sistema de Evaluación de Entregas" {
+  usecase "Acceder a evaluaciones pendientes" as UC1
+  usecase "Filtrar entregas" as UC2
+  usecase "Seleccionar una entrega" as UC3
+  usecase "Visualizar entrega" as UC4
+  usecase "Evaluar entrega" as UC5
+  usecase "Ingresar puntaje (0-20)" as UC6
+  usecase "Validar rango de puntaje" as UC7
+  usecase "Calcular escala de letras" as UC8
+  usecase "Redactar observaciones" as UC9
+  usecase "Sugerir ampliar observaciones (si < 10 caracteres)" as UC10
+  usecase "Asignar estatus motivacional" as UC11
+  usecase "Confirmar y guardar evaluación" as UC12
+  usecase "Actualizar promedios del estudiante" as UC13
+  usecase "Recalcular estatus motivacional global" as UC14
+  usecase "Notificar al estudiante" as UC15
+  usecase "Marcar entrega como evaluada" as UC16
+  usecase "Registrar docente y timestamp" as UC17
+  usecase "Solicitar nueva entrega (imagen ilegible)" as UC18
+  usecase "Explicar motivo de rechazo" as UC19
+  usecase "Marcar entrega como rechazada" as UC20
+  usecase "Visualizar resumen de evaluaciones" as UC21
+  usecase "Exportar lista de calificaciones" as UC22
+}
+
+D --> UC1
+D --> UC2
+D --> UC3
+D --> UC5
+D --> UC21
+D --> UC22
+
+' Inclusiones obligatorias
+UC1 ..> UC2 : <<extend>> (opcional)
+UC3 ..> UC4 : <<include>>
+UC5 ..> UC6 : <<include>>
+UC6 ..> UC7 : <<include>>
+UC5 ..> UC8 : <<include>>
+UC5 ..> UC9 : <<include>>
+UC9 ..> UC10 : <<extend>> (si observaciones < 10)
+UC5 ..> UC11 : <<include>>
+UC5 ..> UC12 : <<include>>
+UC12 ..> UC13 : <<include>>
+UC12 ..> UC14 : <<include>>
+UC12 ..> UC15 : <<include>>
+UC12 ..> UC16 : <<include>>
+UC12 ..> UC17 : <<include>>
+
+' Manejo de imagen ilegible (alternativa)
+UC5 ..> UC18 : <<extend>> (si imagen ilegible)
+UC18 ..> UC19 : <<include>>
+UC18 ..> UC20 : <<include>>
+UC18 ..> UC15 : <<include>> (notifica al estudiante)
+
+' Resumen final
+UC21 ..> UC22 : <<extend>> (opcional)
+
+' Notas explicativas
+note right of UC6
+  Rango permitido: 0 a 20.
+  Si es inválido, muestra error
+  y solicita nuevo ingreso.
+end note
+
+note right of UC8
+  Escala automática:
+  - 18-20 → 'A' (Sobresaliente)
+  - 15-17 → 'B' (Distinguido)
+  - 12-14 → 'C' (Aprobado)
+  - 0-11 → 'D' (Por mejorar)
+end note
+
+note right of UC10
+  Si observaciones < 10 caracteres,
+  el sistema sugiere agregar más detalles.
+end note
+
+note right of UC11
+  Sistema sugiere estatus según
+  promedio histórico, pero el docente
+  puede mantener o modificar.
+end note
+
+note right of UC12
+  Verifica que todos los datos
+  estén completos antes de guardar.
+  Si falta algo, solicita completar.
+end note
+
+note right of UC13
+  Actualiza el promedio general
+  del estudiante tras la evaluación.
+end note
+
+note right of UC14
+  Recalcula el estatus motivacional
+  global del estudiante según
+  últimas evaluaciones.
+end note
+
+note right of UC18
+  Si la imagen no es legible,
+  el docente solicita nueva entrega,
+  explica el motivo, notifica al
+  estudiante y marca como rechazada.
+end note
+
+note bottom of UC22
+  Exporta calificaciones en formato
+  PDF, Excel o CSV.
+end note
+
+@enduml

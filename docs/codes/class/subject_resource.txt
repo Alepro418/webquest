@@ -1,0 +1,220 @@
+@startuml
+title Diagrama de Clases - Módulo Académico
+
+' ==============================================
+' ENUMS
+' ==============================================
+enum TipoRecurso {
+    ENLACE
+    VIDEO
+    DOCUMENTO
+    AUDIO
+    IMAGEN
+    PRESENTACION
+}
+
+enum EstadoAsignatura {
+    BORRADOR
+    PUBLICADA
+    ARCHIVADA
+    EN_REVISION
+}
+
+enum TipoArchivo {
+    PDF
+    DOC
+    DOCX
+    PPT
+    PPTX
+    XLS
+    XLSX
+    JPG
+    PNG
+    MP4
+    MP3
+}
+
+' ==============================================
+' CLASES PRINCIPALES
+' ==============================================
+class Asignatura {
+    - id_asignatura: int
+    - titulo: string
+    - descripcion: text
+    - objetivos: text
+    - id_docente: int
+    - grado: int
+    - estado: EstadoAsignatura
+    - fecha_creacion: datetime
+    - fecha_publicacion: datetime
+    - imagen_portada: string
+    - unidades: Array
+    + publicar(): boolean
+    + archivar(): boolean
+    + agregarUnidad(unidad): void
+    + obtenerRecursos(): Array
+    + obtenerTalleres(): Array
+    + obtenerEstudiantesInscritos(): Array
+    + duplicar(): Asignatura
+}
+
+class Unidad {
+    - id_unidad: int
+    - id_asignatura: int
+    - titulo: string
+    - descripcion: string
+    - orden: int
+    - objetivos_especificos: text
+    - recursos_asociados: Array
+    - talleres_asociados: Array
+    + agregarRecurso(recurso): void
+    + agregarTaller(taller): void
+    + cambiarOrden(nuevo_orden): void
+    + obtenerContenido(): Array
+}
+
+class Recurso {
+    - id_recurso: int
+    - id_asignatura: int
+    - id_unidad: int (opcional)
+    - tipo: TipoRecurso
+    - titulo: string
+    - descripcion: string
+    - url_o_ruta: string
+    - tipo_archivo: TipoArchivo (si aplica)
+    - tamaño: int (bytes)
+    - duracion: int (segundos, para videos)
+    - thumbnail: string
+    - orden: int
+    - obligatorio: boolean
+    - fecha_agregado: datetime
+    - veces_visto: int
+    + incrementarVisitas(): void
+    + obtenerUrlAcceso(): string
+    + validarAccesibilidad(): boolean
+    + generarThumbnail(): string
+    + obtenerMetadatos(): Array
+}
+
+class Video {
+    - plataforma: string (youtube, vimeo, local)
+    - id_video: string
+    - duracion: int
+    - calidad: string
+    - subtitulos: boolean
+    + obtenerEmbedCode(): string
+    + obtenerThumbnail(): string
+    + reproducir(): void
+}
+
+class Documento {
+    - extension: string
+    - paginas: int (para PDF)
+    - previsualizable: boolean
+    + obtenerVistaPrevia(): string
+    + descargar(): void
+}
+
+class Enlace {
+    - dominio: string
+    - favicon: string
+    - meta_descripcion: string
+    + obtenerMetadatos(): Array
+    + verificarDisponibilidad(): boolean
+}
+
+' ==============================================
+' CONTROLADORES
+' ==============================================
+class AsignaturaController {
+    - asignaturaModel: AsignaturaModel
+    - unidadModel: UnidadModel
+    - recursoModel: RecursoModel
+    + index(): Response
+    + show(id): Response
+    + create(): Response
+    + store(request): Response
+    + edit(id): Response
+    + update(request, id): Response
+    + destroy(id): Response
+    + publicar(id): Response
+    + archivar(id): Response
+    + duplicar(id): Response
+    + gestionarUnidades(id): Response
+}
+
+class RecursoController {
+    - recursoModel: RecursoModel
+    - asignaturaModel: AsignaturaModel
+    + index(asignatura_id): Response
+    + show(id): Response
+    + create(asignatura_id): Response
+    + store(request): Response
+    + edit(id): Response
+    + update(request, id): Response
+    + destroy(id): Response
+    + uploadFile(request): Response
+    + addLink(request): Response
+    + addVideo(request): Response
+    + reordenar(request): Response
+}
+
+class UnidadController {
+    - unidadModel: UnidadModel
+    + create(asignatura_id): Response
+    + store(request): Response
+    + edit(id): Response
+    + update(request, id): Response
+    + destroy(id): Response
+    + reordenar(request): Response
+}
+
+' ==============================================
+' VISTAS
+' ==============================================
+class AsignaturaView {
+    + renderList(asignaturas): string
+    + renderDetail(asignatura): string
+    + renderForm(asignatura, modo): string
+    + renderUnidades(asignatura): string
+    + showSuccess(message): string
+}
+
+class RecursoView {
+    + renderList(recursos, asignatura): string
+    + renderForm(tipo, asignatura_id): string
+    + renderUploadForm(): string
+    + renderLinkForm(): string
+    + renderVideoForm(): string
+    + showPreview(recurso): string
+}
+
+class UnidadView {
+    + renderForm(asignatura_id, unidad): string
+    + renderList(unidades): string
+    + renderDragAndDrop(): string
+}
+
+' ==============================================
+' RELACIONES
+' ==============================================
+Asignatura "1" -- "0..*" Unidad : contiene
+Asignatura "1" -- "0..*" Recurso : tiene
+Unidad "1" -- "0..*" Recurso : incluye
+
+Recurso <|-- Video
+Recurso <|-- Documento
+Recurso <|-- Enlace
+
+AsignaturaController --> Asignatura
+AsignaturaController --> Unidad
+AsignaturaController --> Recurso
+
+RecursoController --> Recurso
+UnidadController --> Unidad
+
+AsignaturaView --> AsignaturaController
+RecursoView --> RecursoController
+UnidadView --> UnidadController
+
+@enduml

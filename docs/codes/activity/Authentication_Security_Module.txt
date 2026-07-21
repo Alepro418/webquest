@@ -1,0 +1,41 @@
+@startuml
+title Actividad: Proceso de Autenticación
+
+start
+
+:Usuario ingresa nombre_usuario;
+:Usuario ingresa contraseña;
+
+:Sistema busca usuario en BD;
+
+if (¿Usuario existe?) then (Sí)
+  :Obtiene hash de contraseña almacenada;
+  :Genera hash de contraseña ingresada;
+  
+  if (¿Hash coincide?) then (Sí)
+    :Registra timestamp de acceso;
+    :Actualiza último inicio de sesión;
+    :Crea token de sesión;
+    :Redirige según rol;
+    stop
+  else (No)
+    :Incrementa contador de intentos fallidos;
+    
+    if (¿Intentos ≥ 3?) then (Sí)
+      :Bloquea cuenta por 30 minutos;
+      :Registra IP del intento;
+      :Envía alerta al representante;
+      :Muestra mensaje de bloqueo;
+    else (No)
+      :Muestra: "Contraseña incorrecta";
+      :Muestra intentos restantes: {3 - intentos};
+    endif
+  endif
+  
+else (No)
+  :Muestra: "Usuario no registrado";
+  :Ofrece opción de registro;
+endif
+
+stop
+@enduml

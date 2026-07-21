@@ -1,0 +1,66 @@
+@startuml
+title Casos de Uso - Cálculo de Escala y Estatus Motivacional
+
+left to right direction
+actor "Sistema" as S
+
+rectangle "Módulo de Evaluación y Estatus" {
+  usecase "Calcular escala de letras" as UC1
+  usecase "Calcular estatus motivacional histórico" as UC2
+  usecase "Actualizar estatus diariamente" as UC3
+  usecase "Obtener últimas 5 evaluaciones" as UC4
+  usecase "Aplicar ponderación (30% recientes)" as UC5
+  usecase "Actualizar perfil del estudiante" as UC6
+  usecase "Registrar última actualización" as UC7
+  usecase "Notificar cambio de estatus" as UC8
+}
+
+S --> UC1
+S --> UC2
+S --> UC3
+
+UC1 ..> UC2 : <<trigger>> (al recibir nueva evaluación)
+UC2 ..> UC4 : <<include>>
+UC2 ..> UC5 : <<include>>
+UC2 ..> UC6 : <<include>>
+UC2 ..> UC7 : <<include>>
+UC2 ..> UC8 : <<extend>> (si hay cambio de estatus)
+UC3 ..> UC2 : <<trigger>> (ejecuta el mismo cálculo)
+
+note right of UC1
+  Escala según puntaje:
+  - 18-20 → 'A'
+  - 15-17 → 'B'
+  - 12-14 → 'C'
+  - 0-11 → 'D'
+end note
+
+note right of UC2
+  Estatus motivacional según 
+  promedio ponderado de últimas 5 evaluaciones:
+  - >= 18 → Sobresaliente
+  - 12-17.99 → Buen estudiante
+  - < 12 → Vamos a mejorar
+end note
+
+note right of UC5
+  Ponderación: 30% para las
+  evaluaciones más recientes.
+  Las otras 4 se distribuyen 
+  equitativamente.
+end note
+
+note right of UC3
+  Proceso programado que se ejecuta
+  todos los días a las 00:00,
+  actualizando estatus de todos
+  los estudiantes.
+end note
+
+note right of UC8
+  Se notifica al estudiante solo
+  si su estatus ha cambiado
+  desde la última actualización.
+end note
+
+@enduml

@@ -1,0 +1,158 @@
+@startuml
+title Diagrama de Clases - Gestión de Usuarios
+
+' ==============================================
+' CLASES BASE
+' ==============================================
+abstract class Persona {
+    - id: int
+    - nombre_completo: string
+    - fecha_nacimiento: date
+    - telefono_contacto: string
+    - direccion: string
+    + obtenerNombreCompleto(): string
+    + validarDatos(): boolean
+}
+
+class UsuarioSistema {
+    - id_usuario: int
+    - nombre_usuario: string
+    - password_hash: string
+    - rol: RolUsuario
+    - fecha_registro: datetime
+    - ultimo_acceso: datetime
+    - activo: boolean
+    + autenticar(password): boolean
+    + tieneAcceso(modulo): boolean
+    + actualizarUltimoAcceso(): void
+}
+
+' ==============================================
+' CLASES ESPECÍFICAS
+' ==============================================
+class Docente {
+    - id_docente: int
+    - id_usuario: int
+    - especialidad: string
+    - titulo_academico: string
+    - años_experiencia: int
+    - asignaturas_asignadas: Array
+    + crearAsignatura(datos): Asignatura
+    + evaluarEntrega(id_entrega, datos): Evaluacion
+    + obtenerEstadisticasCohorte(): Array
+    + generarReporte(tipo, parametros): Reporte
+}
+
+class Estudiante {
+    - id_estudiante: int
+    - id_usuario: int
+    - grado: int
+    - seccion: string
+    - institucion: string
+    - fecha_ingreso: date
+    - id_representante: int
+    - promedio_general: float
+    - estatus_motivacional: string
+    + obtenerAsignaturasDisponibles(): Array
+    + obtenerProgreso(): float
+    + realizarEntrega(taller_id, foto): Entrega
+    + consultarResultados(): Array
+    + calcularPromedio(): float
+    + actualizarEstatus(): string
+}
+
+class Representante {
+    - id_representante: int
+    - nombre_completo: string
+    - cedula: string
+    - telefono: string
+    - email: string
+    - relacion: string
+    - estudiantes_avalados: Array
+    + avalarRegistro(id_estudiante): boolean
+    + obtenerEstudiantes(): Array
+    + recibirNotificaciones(mensaje): void
+}
+
+' ==============================================
+' CONTROLADORES
+' ==============================================
+class UsuarioController {
+    - usuarioModel: UsuarioModel
+    - docenteModel: DocenteModel
+    - estudianteModel: EstudianteModel
+    + perfil(id): Response
+    + editarPerfil(request): Response
+    + cambiarPassword(request): Response
+    + listarUsuarios(filtros): Response
+    + buscarUsuario(termino): Response
+    + activarCuenta(id): Response
+    + desactivarCuenta(id): Response
+}
+
+class DocenteController {
+    - docenteModel: DocenteModel
+    - asignaturaModel: AsignaturaModel
+    + dashboard(): Response
+    + obtenerAsignaturas(): Response
+    + obtenerEstadisticas(): Response
+    + configurarPerfil(request): Response
+}
+
+class EstudianteController {
+    - estudianteModel: EstudianteModel
+    - representanteModel: RepresentanteModel
+    + dashboard(): Response
+    + obtenerDatosAcademicos(): Response
+    + actualizarRepresentante(request): Response
+    + verHistorialAcademico(): Response
+}
+
+' ==============================================
+' VISTAS
+' ==============================================
+class PerfilView {
+    + render(usuario): string
+    + showEditForm(usuario): string
+    + showChangePasswordForm(): string
+    + showSuccess(message): string
+}
+
+class DocenteDashboardView {
+    + render(docente, estadisticas): string
+    + showAsignaturas(asignaturas): string
+    + showEstadisticas(datos): string
+    + showAccionesRapidas(): string
+}
+
+class EstudianteDashboardView {
+    + render(estudiante, datos): string
+    + showProgreso(progreso): string
+    + showAsignaturas(asignaturas): string
+    + showEstatusMotivacional(estatus): string
+}
+
+' ==============================================
+' RELACIONES
+' ==============================================
+Persona <|-- UsuarioSistema
+UsuarioSistema <|-- Docente
+UsuarioSistema <|-- Estudiante
+Persona <|-- Representante
+
+Docente "1" -- "0..*" Asignatura : crea
+Estudiante "1" -- "0..*" Entrega : realiza
+Estudiante "1" -- "0..*" Evaluacion : recibe
+Representante "1" -- "0..*" Estudiante : representa
+
+DocenteController --> Docente
+DocenteController --> Asignatura
+
+EstudianteController --> Estudiante
+EstudianteController --> Representante
+
+PerfilView --> UsuarioController
+DocenteDashboardView --> DocenteController
+EstudianteDashboardView --> EstudianteController
+
+@enduml

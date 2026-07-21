@@ -1,0 +1,321 @@
+@startuml
+title Actividad: Módulo de Reportes y Estadísticas - Análisis Académico
+
+start
+
+:Docente accede al módulo de "Reportes y Estadísticas";
+:Sistema muestra panel principal de reportes;
+
+:Sistema presenta opciones disponibles:
+
+== TIPOS DE REPORTE ==
+- Reporte General de Cohorte
+- Reporte Individual por Estudiante
+- Reporte por Asignatura
+- Reporte de Entregas y Evaluaciones
+- Reporte de Estatus Motivacional
+- Estadísticas de Rendimiento
+- Exportación de Datos;
+
+:Docente selecciona tipo de reporte a generar;
+
+if (Tipo seleccionado?) then (Reporte General de Cohorte)
+  :Sistema solicita filtros generales:
+  - Grado(s) a incluir
+  - Período académico (fechas)
+  - Sección específica (opcional);
+  
+  :Docente aplica filtros deseados;
+  
+  :Sistema procesa solicitud;
+  
+  :Sistema consulta base de datos:
+  - Total de estudiantes activos
+  - Promedio general por grado
+  - Distribución de calificaciones
+  - Tasa de entregas completadas;
+  
+  :Sistema genera dashboard con:
+  
+  ╔════════════════════════════════════╗
+  ║   REPORTE GENERAL DE COHORTE       ║
+  ╠════════════════════════════════════╣
+  ║ Estudiantes: 45 | Promedio: 15.2   ║
+  ║ Entregas: 89% | Evaluadas: 76%     ║
+  ╚════════════════════════════════════╝
+  
+  :Sistema muestra gráficos:
+  - Gráfico de barras: Distribución por grado
+  - Gráfico circular: Estatus motivacional
+  - Línea de tendencia: Rendimiento por período;
+  
+  :Docente puede interactuar con gráficos;
+  
+else if (Reporte Individual por Estudiante) then
+  :Sistema muestra buscador de estudiantes;
+  
+  repeat
+    :Docente ingresa nombre o selecciona de lista;
+    :Sistema busca coincidencias;
+    
+    if (¿Estudiante encontrado?) then (No)
+      :Sistema muestra mensaje: "No se encontraron resultados";
+      :Sugiere intentar con otro término;
+      backward;
+    endif
+    
+  repeat while (¿Estudiante no encontrado?) is (Sí)
+  
+  :Sistema obtiene ID del estudiante seleccionado;
+  
+  :Sistema consulta base de datos:
+  - Datos personales del estudiante
+  - Historial completo de entregas
+  - Todas las evaluaciones recibidas
+  - Promedios por asignatura
+  - Evolución de rendimiento
+  - Estatus motivacional actual e histórico;
+  
+  :Sistema genera reporte individual con:
+  
+  == PERFIL DEL ESTUDIANTE ==
+  - Nombre completo
+  - Grado y sección
+  - Fecha de ingreso
+  - Promedio general
+  - Estatus motivacional actual
+  
+  == RENDIMIENTO ACADÉMICO ==
+  for each (asignatura)
+    :Muestra:
+    - Asignatura
+    - Promedio en la asignatura
+    - Talleres completados / total
+    - Mejor calificación
+    - Última evaluación;
+  endfor
+  
+  == HISTORIAL DETALLADO ==
+  :Sistema muestra tabla cronológica:
+  
+  | Fecha | Asignatura | Taller | Puntaje | Escala | Observaciones |
+  |-------|------------|--------|---------|--------|---------------|
+  | 15/03 | Reino Animal | Clasificación | 18 | A | Excelente... |
+  | 10/03 | Reino Animal | Hábitats | 15 | B | Buen trabajo... |
+  
+  == GRÁFICO DE EVOLUCIÓN ==
+  :Sistema genera gráfico de líneas con:
+  - Progreso por período
+  - Comparativa con promedio grupal
+  - Tendencia de rendimiento;
+  
+  :Docente puede:
+  - Ver detalles de cada evaluación
+  - Acceder a la foto de entrega
+  - Agregar nota interna;
+  
+else if (Reporte por Asignatura) then
+  :Sistema lista asignaturas del docente;
+  :Docente selecciona una asignatura;
+  
+  :Sistema consulta base de datos:
+  - Total de estudiantes inscritos
+  - Talleres creados en la asignatura
+  - Entregas recibidas por taller
+  - Evaluaciones realizadas
+  - Promedio general de la asignatura
+  - Distribución de calificaciones;
+  
+  :Sistema genera reporte de asignatura:
+  
+  == VISIÓN GENERAL ==
+  :Muestra título y descripción de asignatura;
+  :Muestra métricas clave:
+  - Estudiantes: XX
+  - Talleres: XX
+  - Promedio grupal: XX/20
+  - Tasa de aprobación: XX%;
+  
+  == RENDIMIENTO POR TALLER ==
+  for each (taller en la asignatura)
+    :Muestra:
+    - Nombre del taller
+    - Fecha límite
+    - Entregas recibidas / esperadas
+    - Promedio del taller
+    - Distribución de escalas (A, B, C, D);
+    
+    if (Docente expande) then
+      :Muestra lista de estudiantes con sus calificaciones;
+    endif
+  endfor
+  
+  == DISTRIBUCIÓN DE CALIFICACIONES ==
+  :Sistema muestra gráfico de pastel:
+  - A (Sobresaliente): XX%
+  - B (Distinguido): XX%
+  - C (Aprobado): XX%
+  - D (Por mejorar): XX%;
+  
+  == ESTUDIANTES DESTACADOS ==
+  :Lista top 5 estudiantes con mejor rendimiento;
+  
+  == ESTUDIANTES QUE REQUIEREN APOYO ==
+  :Lista estudiantes con promedio < 12;
+  
+else if (Reporte de Entregas y Evaluaciones) then
+  :Sistema solicita rango de fechas;
+  :Docente selecciona período (semana, mes, trimestre);
+  
+  :Sistema consulta base de datos:
+  - Total de entregas en el período
+  - Entregas por día/semana
+  - Entregas evaluadas vs pendientes
+  - Tiempo promedio de evaluación
+  - Tasa de entregas a tiempo vs tardías;
+  
+  :Sistema genera reporte de actividad:
+  
+  == MÉTRICAS DE ENTREGAS ==
+  :Muestra tarjetas con:
+  - 📥 Total entregas: XXX
+  - ✅ Evaluadas: XXX (XX%)
+  - ⏳ Pendientes: XXX (XX%)
+  - ⏱️ Tiempo promedio evaluación: X días
+  
+  == GRÁFICO DE ENTREGAS POR PERÍODO ==
+  :Sistema muestra gráfico de barras:
+  - Eje X: Días/semanas
+  - Eje Y: Cantidad de entregas;
+  
+  == DETALLE DE ENTREGAS PENDIENTES ==
+  :Sistema lista entregas sin evaluar con:
+  - Estudiante
+  - Taller
+  - Fecha de entrega
+  - Días transcurridos
+  - [Evaluar ahora];
+  
+else if (Reporte de Estatus Motivacional) then
+  :Sistema consulta distribución actual:
+  
+  :Sistema calcula:
+  - Estudiantes con estatus "Sobresaliente"
+  - Estudiantes con estatus "Buen estudiante"
+  - Estudiantes con estatus "Vamos a mejorar";
+  
+  :Sistema genera reporte motivacional:
+  
+  == DISTRIBUCIÓN GENERAL ==
+  :Muestra gráfico de barras o pastel:
+  
+  ⭐ Sobresaliente: 15 estudiantes (33%)
+  ✓ Buen estudiante: 22 estudiantes (49%)
+  🌱 Vamos a mejorar: 8 estudiantes (18%)
+  
+  == EVOLUCIÓN DE ESTATUS ==
+  :Sistema muestra gráfico de líneas con:
+  - Cambio de estatus en el tiempo
+  - Tendencias positivas/negativas;
+  
+  == LISTADO POR CATEGORÍA ==
+  :Docente puede expandir cada categoría:
+  
+  === SOBRESALIENTE ===
+  - María González - Prom: 19.2
+  - Juan Pérez - Prom: 18.7
+  - Ana López - Prom: 18.5
+  
+  === VAMOS A MEJORAR ===
+  - Carlos Ruiz - Prom: 10.3
+  - Laura Díaz - Prom: 11.2
+  
+  == RECOMENDACIONES AUTOMÁTICAS ==
+  :Sistema sugiere:
+  - "3 estudiantes necesitan atención prioritaria"
+  - "Programar reunión con padres de estudiantes en 'Vamos a mejorar'"
+  - "Felicitar a los 15 estudiantes destacados";
+  
+else if (Estadísticas de Rendimiento) then
+  :Sistema solicita parámetros comparativos;
+  :Docente selecciona:
+  - Comparar por grado
+  - Comparar por asignatura
+  - Comparar por período;
+  
+  :Sistema genera análisis estadístico:
+  
+  == ESTADÍSTICAS DESCRIPTIVAS ==
+  :Muestra:
+  - Media general: XX
+  - Mediana: XX
+  - Moda: XX
+  - Desviación estándar: XX
+  - Rango de calificaciones: XX - XX;
+  
+  == ANÁLISIS DE TENDENCIAS ==
+  :Sistema identifica:
+  - Asignaturas con mejor rendimiento
+  - Asignaturas que requieren refuerzo
+  - Mejoría o declive por período;
+  
+  == PREDICCIONES SIMPLES ==
+  :Sistema proyecta:
+  - Rendimiento esperado próximo período
+  - Estudiantes en riesgo de bajar estatus;
+  
+else if (Exportación de Datos) then
+  :Sistema muestra opciones de exportación;
+  
+  :Docente selecciona formato:
+  - PDF (para presentar)
+  - Excel (para analizar)
+  - CSV (para importar a otro sistema);
+  
+  :Docente selecciona qué incluir:
+  - Datos generales
+  - Gráficos incluidos
+  - Tablas detalladas;
+  
+  :Sistema genera archivo;
+  
+  if (Formato = PDF) then
+    :Sistema maqueta documento con:
+    - Encabezado institucional
+    - Fecha de generación
+    - Gráficos embebidos
+    - Tablas formateadas
+    - Resumen ejecutivo;
+    
+    :Sistema ofrece vista previa;
+    
+  else if (Formato = Excel) then
+    :Sistema genera libro con pestañas:
+    - Resumen
+    - Datos completos
+    - Gráficos
+    - Metadatos;
+  endif
+  
+  :Sistema guarda archivo en /public/teaching/exports/;
+  :Sistema ofrece descargar;
+  
+  :Registra generación de reporte en log;
+endif
+
+== ACCIONES POST-REPORTE ==
+if (Docente desea) then
+  :Puede:
+  - Guardar reporte como favorito
+  - Programar generación automática
+  - Compartir por email
+  - Imprimir
+  - Volver a inicio de reportes;
+endif
+
+:Docente finaliza consulta;
+:Sistema registra actividad en historial;
+
+stop
+
+@enduml

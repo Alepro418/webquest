@@ -1,0 +1,105 @@
+@startuml
+title Diagrama de Casos de Uso - Monitoreo y Analítica de Estudiantes
+
+left to right direction
+actor "Docente" as D
+
+rectangle "Panel de Control / Módulo de Analítica" {
+  usecase "Acceder al panel de control" as UC1
+  usecase "Ver vista general (métricas clave)" as UC2
+  usecase "Alternar entre vistas (cuadrícula/lista)" as UC3
+  usecase "Ver tarjetas de estudiantes" as UC4
+  usecase "Ver tabla ordenable de estudiantes" as UC5
+  usecase "Ordenar por columna" as UC6
+  usecase "Filtrar por estatus o rango de promedios" as UC7
+  usecase "Seleccionar estudiante para análisis individual" as UC8
+  usecase "Ver historial completo de entregas" as UC9
+  usecase "Ver detalles de cada entrega" as UC10
+  usecase "Ver gráfico de evolución del estudiante" as UC11
+  usecase "Comparar con promedio grupal" as UC12
+  usecase "Agregar nota interna (solo docente)" as UC13
+  usecase "Programar alerta de seguimiento" as UC14
+  usecase "Generar reportes" as UC15
+  usecase "Exportar datos (PDF/Excel/CSV)" as UC16
+  usecase "Definir rango de fechas para reporte" as UC17
+  usecase "Visualizar gráficos actualizados" as UC18
+  usecase "Expandir gráficos para análisis detallado" as UC19
+}
+
+D --> UC1
+D --> UC3
+D --> UC8
+D --> UC15
+D --> UC18
+
+' Inclusiones obligatorias
+UC1 ..> UC2 : <<include>>
+UC3 ..> UC4 : <<include>> (si elige cuadrícula)
+UC3 ..> UC5 : <<include>> (si elige lista)
+UC4 ..> UC6 : <<include>> (ordenar en cuadrícula)
+UC5 ..> UC6 : <<include>> (ordenar en lista)
+UC4 ..> UC7 : <<include>> (filtrar en cuadrícula)
+UC5 ..> UC7 : <<include>> (filtrar en lista)
+UC8 ..> UC9 : <<include>> (al seleccionar estudiante)
+UC9 ..> UC10 : <<include>> (cada entrega tiene detalle)
+UC8 ..> UC11 : <<include>> (muestra gráfico de evolución)
+UC11 ..> UC12 : <<include>> (incluye comparativa grupal)
+UC8 ..> UC13 : <<extend>> (opcional, si docente requiere)
+UC8 ..> UC14 : <<extend>> (opcional, si docente requiere)
+UC15 ..> UC16 : <<include>> (siempre incluye exportación)
+UC16 ..> UC17 : <<include>> (requiere definir rango)
+UC18 ..> UC19 : <<extend>> (opcional, para expandir)
+
+' Notas explicativas
+note right of UC2
+  Métricas clave:
+  - Total estudiantes activos
+  - Promedio general
+  - Tasa de entregas a tiempo
+  - Distribución de estatus motivacional
+end note
+
+note right of UC4
+  Tarjeta muestra:
+  - Nombre y foto
+  - Promedio actual
+  - Barra de progreso
+  - Estatus con ícono
+end note
+
+note right of UC5
+  Tabla con columnas:
+  - Nombre, Grado, Promedio,
+  - Última actividad, Estatus,
+  - Acciones rápidas
+end note
+
+note right of UC9
+  Historial completo con:
+  - Actividad, fecha entrega,
+  - puntaje, escala, observaciones,
+  - enlace a fotografía
+end note
+
+note right of UC11
+  Gráfico de evolución con:
+  - Promedio por período
+  - Tendencias de rendimiento
+end note
+
+note right of UC15
+  Tipos de reporte:
+  - General de cohorte
+  - Individual
+  - Por asignatura
+  - Entregas pendientes
+end note
+
+note bottom of UC18
+  Gráficos actualizados:
+  - Distribución de calificaciones
+  - Entregas por período
+  - Estatus motivacionales
+  - Tendencia general del grupo
+end note
+@enduml

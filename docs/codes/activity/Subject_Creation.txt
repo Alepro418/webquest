@@ -1,0 +1,66 @@
+@startuml
+title Actividad: Crear Nueva Asignatura
+
+start
+
+:Docente selecciona "Nueva Asignatura";
+:Sistema muestra formulario de creación;
+
+repeat
+  :datos_validos = true;
+  
+  :Docente ingresa título;
+  if (longitud_titulo < 5) then
+    :Muestra error: "Título muy corto";
+    :datos_validos = false;
+  endif
+  if (longitud_titulo > 100) then
+    :Muestra error: "Título muy largo";
+    :datos_validos = false;
+  endif
+
+  :Docente ingresa descripción;
+  if (longitud_descripcion < 50) then
+    :Muestra error: "Descripción muy corta";
+    :datos_validos = false;
+  endif
+
+  :Docente define objetivos;
+  if (cantidad_objetivos < 1) then
+    :Muestra error: "Agregar al menos 1 objetivo";
+    :datos_validos = false;
+  endif
+
+  :Docente estructura unidades;
+  if (cantidad_unidades < 1 or cantidad_unidades > 8) then
+    :Muestra error: "Unidades entre 1 y 8";
+    :datos_validos = false;
+  endif
+
+  :Sistema verifica título único;
+  if (titulo_duplicado) then
+    :Muestra error: "Título ya existe";
+    :Sugiere alternativo;
+    :datos_validos = false;
+  endif
+
+repeat while (datos_validos == false);
+
+:Sistema guarda asignatura como borrador;
+:Asigna ID único;
+:Registra fecha y creador;
+
+:Sistema muestra éxito;
+:Ofrece opciones: Agregar recursos, Publicar, Seguir editando;
+
+if (opcion == "Agregar recursos") then
+  :Redirige a gestor de recursos;
+elseif (opcion == "Publicar") then
+  :Cambia estado a publicada;
+  :Notifica a estudiantes;
+else
+  :Mantiene en edición;
+endif
+
+stop
+@enduml

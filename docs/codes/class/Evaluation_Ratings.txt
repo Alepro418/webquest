@@ -1,0 +1,181 @@
+@startuml
+title Diagrama de Clases - Módulo de Evaluación
+
+' ==============================================
+' ENUMS
+' ==============================================
+enum EscalaLetra {
+    A  "Sobresaliente (20-18)"
+    B  "Distinguido (17-15)"
+    C  "Aprobado (14-12)"
+    D  "Por mejorar (11-0)"
+}
+
+enum EstatusMotivacional {
+    SOBRESALIENTE
+    BUEN_ESTUDIANTE
+    VAMOS_A_MEJORAR
+}
+
+enum TipoEvaluacion {
+    INICIAL
+    FORMATIVA
+    SUMATIVA
+    FINAL
+}
+
+' ==============================================
+' CLASES PRINCIPALES
+' ==============================================
+class Evaluacion {
+    - id_evaluacion: int
+    - id_entrega: int
+    - id_docente: int
+    - puntaje: int
+    - escala_letra: EscalaLetra
+    - observaciones: text
+    - estatus: EstatusMotivacional
+    - mensaje_personalizado: string
+    - fecha_evaluacion: datetime
+    - tiempo_dedicado: int (minutos)
+    - criterios_evaluados: JSON
+    + calcularEscala(): EscalaLetra
+    + generarMensajeMotivacional(): string
+    + notificarEstudiante(): void
+    + esAprobatoria(): boolean
+    + obtenerPuntajePorcentaje(): float
+}
+
+class CriterioEvaluacion {
+    - id_criterio: int
+    - id_evaluacion: int
+    - nombre: string
+    - descripcion: string
+    - puntaje_maximo: int
+    - puntaje_obtenido: int
+    - retroalimentacion: string
+    + calcularPorcentaje(): float
+    + cumpleCriterio(): boolean
+}
+
+class Retroalimentacion {
+    - id_retroalimentacion: int
+    - id_evaluacion: int
+    - tipo: string (texto, audio, video)
+    - contenido: text
+    - fecha_creacion: datetime
+    - visible_estudiante: boolean
+    + enviarNotificacion(): void
+    + marcarComoLeida(): void
+}
+
+class HistorialAcademico {
+    - id_historial: int
+    - id_estudiante: int
+    - periodo: string
+    - promedio_periodo: float
+    - asignaturas_cursadas: int
+    - talleres_completados: int
+    - evaluaciones: Array
+    - estatus_general: EstatusMotivacional
+    + calcularPromedioPeriodo(): float
+    + obtenerTendencia(): string
+    + generarReporte(): Reporte
+}
+
+class Promedio {
+    - id_promedio: int
+    - id_estudiante: int
+    - id_asignatura: int (opcional)
+    - valor: float
+    - fecha_calculo: datetime
+    - ponderacion: float
+    - ultimas_evaluaciones: Array
+    + recalcular(): void
+    + compararConGrupo(): float
+    + obtenerTendencia(): string
+}
+
+' ==============================================
+' CONTROLADORES
+' ==============================================
+class EvaluacionController {
+    - evaluacionModel: EvaluacionModel
+    - entregaModel: EntregaModel
+    - estudianteModel: EstudianteModel
+    + index(entrega_id): Response
+    + show(id): Response
+    + create(entrega_id): Response
+    + store(request): Response
+    + edit(id): Response
+    + update(request, id): Response
+    + destroy(id): Response
+    + calcularEscalaAutomatica(puntaje): EscalaLetra
+    + sugerirEstatus(estudiante_id): EstatusMotivacional
+    + generarRetroalimentacion(id): Response
+    + notificarEstudiante(id): Response
+}
+
+class HistorialController {
+    - historialModel: HistorialModel
+    - estudianteModel: EstudianteModel
+    + show(estudiante_id): Response
+    + obtenerPromedios(estudiante_id): Response
+    + obtenerTendencia(estudiante_id): Response
+    + compararConGrupo(estudiante_id): Response
+    + exportarHistorial(estudiante_id, formato): Response
+}
+
+class PromedioController {
+    - promedioModel: PromedioModel
+    + calcularPromedioGeneral(estudiante_id): float
+    + calcularPromedioAsignatura(estudiante_id, asignatura_id): float
+    + recalcularTodos(): void
+    + obtenerRanking(grado): Array
+}
+
+' ==============================================
+' VISTAS
+' ==============================================
+class EvaluacionView {
+    + renderForm(entrega): string
+    + renderDetail(evaluacion): string
+    + renderResultadoEstudiante(evaluacion): string
+    + renderRetroalimentacion(evaluacion): string
+    + renderEditForm(evaluacion): string
+}
+
+class HistorialView {
+    + render(historial, estudiante): string
+    + renderGraficoPromedios(datos): string
+    + renderTablaEvaluaciones(evaluaciones): string
+    + renderEstatusMotivacional(estatus): string
+}
+
+class ResultadosView {
+    + renderResultadosEstudiante(estudiante): string
+    + renderDetalleEvaluacion(evaluacion): string
+    + renderEstatusConMensaje(estatus): string
+    + renderComparativa(datos): string
+}
+
+' ==============================================
+' RELACIONES
+' ==============================================
+Evaluacion "1" -- "0..*" CriterioEvaluacion : incluye
+Evaluacion "1" -- "0..*" Retroalimentacion : contiene
+Evaluacion "1" -- "1" Entrega : evalúa
+
+Estudiante "1" -- "1" HistorialAcademico : tiene
+Estudiante "1" -- "0..*" Promedio : posee
+
+EvaluacionController --> Evaluacion
+EvaluacionController --> Entrega
+HistorialController --> HistorialAcademico
+PromedioController --> Promedio
+
+EvaluacionView --> EvaluacionController
+HistorialView --> HistorialController
+ResultadosView --> HistorialController
+
+@enduml

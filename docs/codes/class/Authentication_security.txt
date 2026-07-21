@@ -1,0 +1,149 @@
+@startuml
+title Diagrama de Clases - Módulo de Autenticación y Seguridad
+
+' ==============================================
+' ENUMS
+' ==============================================
+enum RolUsuario {
+    DOCENTE
+    ESTUDIANTE
+}
+
+enum EstadoSesion {
+    ACTIVA
+    EXPIRADA
+    CERRADA
+    BLOQUEADA
+}
+
+' ==============================================
+' MODELOS
+' ==============================================
+class Usuario {
+    - id_usuario: int
+    - nombre_usuario: string
+    - password_hash: string
+    - rol: RolUsuario
+    - nombre_completo: string
+    - fecha_registro: datetime
+    - ultimo_acceso: datetime
+    - intentos_fallidos: int
+    - bloqueado_hasta: datetime
+    - activo: boolean
+    + autenticar(password): boolean
+    + cambiarPassword(nueva): boolean
+    + verificarAcceso(): boolean
+    + registrarIntentoFallido(): void
+    + bloquearCuenta(minutos): void
+    + obtenerPreguntasSeguridad(): Array
+}
+
+class PreguntaSeguridad {
+    - id_pregunta: int
+    - id_usuario: int
+    - pregunta_1: string
+    - respuesta_1_hash: string
+    - pregunta_2: string
+    - respuesta_2_hash: string
+    - pregunta_3: string
+    - respuesta_3_hash: string
+    - pregunta_4: string
+    - respuesta_4_hash: string
+    - pregunta_5: string
+    - respuesta_5_hash: string
+    - fecha_actualizacion: datetime
+    + verificarRespuesta(numPregunta, respuesta): boolean
+    + actualizarPregunta(numPregunta, pregunta, respuesta): void
+    + obtenerPreguntas(): Array
+    + obtenerTodasRespuestasHash(): Array
+}
+
+class Sesion {
+    - id_sesion: string
+    - id_usuario: int
+    - token: string
+    - ip_address: string
+    - user_agent: string
+    - fecha_inicio: datetime
+    - fecha_expiracion: datetime
+    - estado: EstadoSesion
+    + iniciar(usuario): Sesion
+    + cerrar(): boolean
+    + validar(): boolean
+    + renovar(): boolean
+    + obtenerUsuario(): Usuario
+}
+
+' ==============================================
+' CONTROLADORES
+' ==============================================
+class AuthController {
+    - usuarioModel: UsuarioModel
+    - preguntaModel: PreguntaSeguridadModel
+    - sesionModel: SesionModel
+    + login(request): Response
+    + logout(): Response
+    + register(request): Response
+    + showRecoveryForm(): View
+    + processRecovery(request): Response
+    + validateAnswers(request): Response
+    + showResetForm(token): View
+    + resetPassword(request): Response
+    + checkSession(): boolean
+}
+
+class RegistroController {
+    - usuarioModel: UsuarioModel
+    - preguntaModel: PreguntaSeguridadModel
+    + showRegistrationForm(): View
+    + registerStudent(request): Response
+    + validateParentData(request): boolean
+    + validateStudentData(request): boolean
+    + setupSecurityQuestions(request): Response
+    + confirmRegistration(request): Response
+}
+
+' ==============================================
+' VISTAS
+' ==============================================
+class LoginView {
+    + render(form_data, errors): string
+    + showLoginForm(): string
+    + showError(message): string
+}
+
+class RegistroView {
+    + renderForm(): string
+    + showParentForm(): string
+    + showStudentForm(): string
+    + showSecurityQuestionsForm(): string
+    + showConfirmation(data): string
+    + showSuccess(message): string
+}
+
+class RecuperacionView {
+    + showUsernameForm(): string
+    + showQuestionsForm(preguntas): string
+    + showResetForm(): string
+    + showSuccess(message): string
+    + showError(message): string
+}
+
+' ==============================================
+' RELACIONES
+' ==============================================
+Usuario "1" -- "1" PreguntaSeguridad : tiene
+Usuario "1" -- "0..*" Sesion : genera
+
+AuthController --> Usuario
+AuthController --> PreguntaSeguridad
+AuthController --> Sesion
+
+RegistroController --> Usuario
+RegistroController --> PreguntaSeguridad
+
+LoginView --> AuthController
+RegistroView --> RegistroController
+RecuperacionView --> AuthController
+
+@enduml

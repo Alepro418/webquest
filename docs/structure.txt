@@ -1,0 +1,27 @@
+/Webquest
+├── /docs
+|    ├── /codes
+|    |     ├── /activity
+|    |     ├── /class
+|    |     ├── /sequence
+|    |     └── /use
+|    ├── /diagrams
+|    |      ├── /activity
+|    |      ├── /class
+|    |      ├── /sequence
+|    |      └── /use
+|    ├── /requeriments
+|    └── structure.txt
+├── /public
+|     ├── /css
+|     ├── /js
+|     ├── /student
+|     └── /teaching
+|
+├── /src
+|    ├── /core
+|    └── /db
+├── /template
+├── .gitignore
+├── config.json
+└── LICENSE.md

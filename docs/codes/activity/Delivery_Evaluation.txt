@@ -1,0 +1,115 @@
+@startuml
+title Actividad: Evaluación de Taller por Docente
+
+start
+
+:Docente accede a "Entregas Pendientes";
+:Sistema lista entregas sin evaluar;
+
+repeat
+  :Muestra:
+  - Estudiante
+  - Asignatura
+  - Fecha de entrega
+  - Tiempo transcurrido;
+  :Docente puede ordenar por:
+  - Fecha (más antiguas primero)
+  - Asignatura
+  - Estudiante;
+  :Docente selecciona una entrega para evaluar;
+
+  :VISUALIZACIÓN DE ENTREGA;
+  :Sistema carga vista de evaluación;
+  note right
+    **DATOS DEL ESTUDIANTE**
+    Nombre: María González
+    Grado: 4to
+    Asignatura: El Reino Animal
+    Taller: Clasificación Vertebrados
+    Fecha entrega: 15/03/2024
+    ----
+    **FOTOGRAFÍA DE LIBRETA**
+    [IMAGEN - OCUPANDO 60% PANTALLA]
+    Controles: Zoom, Rotar, Brillo
+  end note
+
+  :Docente revisa el trabajo en la imagen;
+
+  if (¿Imagen ilegible?) then (Sí)
+    :Docente selecciona "Solicitar nueva entrega";
+    :Sistema muestra campo para observaciones;
+    :Docente explica el motivo;
+    :Sistema notifica al estudiante;
+    :Marca entrega como "rechazada";
+    stop
+  endif
+
+  :EVALUACIÓN CUANTITATIVA;
+  repeat
+    :Docente ingresa puntaje (0-20);
+    if (puntaje < 0 or puntaje > 20) then
+      :Muestra error: "El puntaje debe ser entre 0 y 20";
+    endif
+  repeat while (puntaje < 0 or puntaje > 20);   ' ← punto y coma añadido
+
+  :Sistema calcula escala_letra automáticamente;
+  note right
+    **Tabla de escala**
+    |Rango    |Letra|Significado     |
+    |18-20    |A    |Sobresaliente   |
+    |15-17    |B    |Distinguido     |
+    |12-14    |C    |Aprobado        |
+    |0-11     |D    |Por mejorar     |
+  end note
+  :Docente puede ver escala calculada;
+
+  :EVALUACIÓN CUALITATIVA;
+  :Docente redacta observaciones;
+
+  if (observaciones < 10 caracteres) then
+    :Sistema sugiere: "Agregar más detalles para ayudar al estudiante";
+    :Docente puede ampliar o continuar;
+  endif
+
+  :ESTATUS MOTIVACIONAL;
+  :Sistema consulta evaluaciones previas del estudiante;
+  :Sistema calcula promedio histórico;
+
+  :Sistema sugiere estatus motivacional;
+  if (promedio_histórico ≥ 18) then
+    :Sugiere: "Sobresaliente" ⭐
+  elseif (promedio_histórico ≥ 12) then
+    :Sugiere: "Buen estudiante" ✓
+  else
+    :Sugiere: "Vamos a mejorar juntos" 🌱
+  endif
+
+  :Docente puede:
+  - Aceptar sugerencia
+  - Seleccionar otro estatus manualmente
+  - Personalizar mensaje asociado;
+
+  :CONFIRMACIÓN;
+  :Sistema muestra resumen de evaluación;
+  :Docente confirma evaluación;
+
+  :Sistema guarda evaluación completa:
+  - id_evaluacion (PK)
+  - id_entrega (FK)
+  - puntaje
+  - escala_letra
+  - observaciones
+  - estatus
+  - fecha_evaluacion (timestamp)
+  - id_docente (FK);
+
+  :Sistema actualiza promedio del estudiante;
+  :Sistema recalcula estatus global;
+  :Sistema notifica al estudiante;
+
+  :Docente puede evaluar siguiente entrega;
+
+repeat while (hay_mas_entregas);
+
+stop
+@enduml

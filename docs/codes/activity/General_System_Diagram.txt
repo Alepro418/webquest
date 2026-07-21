@@ -1,0 +1,80 @@
+@startuml
+title Diagrama de Actividad General - Sistema Webquest
+
+start
+
+:Usuario accede al sistema;
+
+if (¿Tiene credenciales?) then (Sí)
+  :Ingresa usuario y contraseña;
+  :Sistema valida credenciales;
+  
+  if (¿Credenciales válidas?) then (Sí)
+    :Determina rol del usuario;
+    
+    if (Rol = Docente) then
+      :Redirige a panel docente;
+      :Muestra opciones de gestión;
+      
+      fork
+        :Gestionar asignaturas;
+      fork again
+        :Evaluar entregas;
+      fork again
+        :Monitorear estudiantes;
+      fork again
+        :Generar reportes;
+      end fork
+      
+    else if (Rol = Estudiante) then
+      :Redirige a panel estudiante;
+      :Muestra dashboard personal;
+      
+      fork
+        :Explorar asignaturas;
+      fork again
+        :Realizar talleres;
+      fork again
+        :Consultar resultados;
+      fork again
+        :Ver estatus motivacional;
+      end fork
+    endif
+    
+    :Cierra sesión;
+    
+  else (No)
+    :Muestra error de autenticación;
+    :Registra intento fallido;
+    
+    if (¿Intentos ≥ 3?) then (Sí)
+      :Bloquea acceso temporal;
+      :Notifica al usuario;
+      stop
+    else (No)
+      :Ofrece recuperar contraseña;
+      :Redirige a recuperación;
+    endif
+  endif
+  
+else (No)
+  :Ofrece opciones:
+  - Registrarse
+  - Recuperar acceso;
+  
+  if (Selecciona Registro) then
+    :Inicia proceso de registro;
+    :Requiere supervisión parental;
+    :Configura preguntas seguridad;
+    :Activa cuenta;
+    :Redirige a login;
+  else
+    :Inicia recuperación;
+    :Valida preguntas seguridad;
+    :Permite nueva contraseña;
+    :Redirige a login;
+  endif
+endif
+
+stop
+@enduml

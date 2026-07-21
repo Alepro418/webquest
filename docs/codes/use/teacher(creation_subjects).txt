@@ -1,0 +1,66 @@
+@startuml
+title Casos de Uso - Gestión de Asignaturas
+
+left to right direction
+actor "Docente" as D
+
+rectangle "Sistema de Gestión de Asignaturas" {
+  usecase "Crear nueva asignatura" as UC1
+  usecase "Validar título (5-100)" as UC2
+  usecase "Validar descripción (50-2000)" as UC3
+  usecase "Validar objetivos (1-10)" as UC4
+  usecase "Validar unidades (1-8)" as UC5
+  usecase "Verificar unicidad de título" as UC6
+  usecase "Guardar como borrador" as UC7
+  usecase "Publicar asignatura" as UC8
+  usecase "Modificar asignatura (solo creador)" as UC9
+}
+
+D --> UC1
+UC1 ..> UC2 : <<include>>
+UC1 ..> UC3 : <<include>>
+UC1 ..> UC4 : <<include>>
+UC1 ..> UC5 : <<include>>
+UC1 ..> UC6 : <<include>>
+UC1 ..> UC7 : <<include>>
+UC1 ..> UC8 : <<extend>> (opcional)
+UC1 ..> UC9 : <<extend>> (solo para el creador)
+
+note right of UC2
+  Restricción: 5 ≤ título ≤ 100
+end note
+
+note right of UC3
+  Restricción: 50 ≤ descripción ≤ 2000
+end note
+
+note right of UC4
+  Restricción: 1 ≤ objetivos ≤ 10
+end note
+
+note right of UC5
+  Restricción: 1 ≤ unidades ≤ 8
+end note
+
+note right of UC6
+  Regla: No puede existir otra
+  asignatura del mismo docente
+  con el mismo título.
+end note
+
+note right of UC7
+  Regla: La asignatura se crea
+  en estado "borrador" por defecto.
+end note
+
+note right of UC8
+  Solo se puede publicar una
+  asignatura válida.
+end note
+
+note bottom of UC9
+  Solo el docente que creó la
+  asignatura puede modificarla.
+end note
+
+@enduml

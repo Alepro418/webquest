@@ -1,0 +1,127 @@
+@startuml
+title Actividad: Proceso de Entrega de Taller
+
+start
+
+:Estudiante selecciona "Realizar Taller";
+:Sistema verifica estado actual;
+
+if (¿Entrega previa existe?) then (Sí)
+  :Muestra opciones:
+  - Ver mi entrega anterior
+  - Reemplazar entrega
+  - Cancelar;
+  
+  if (Reemplazar) then
+    :Continúa con nueva entrega;
+    :La anterior quedará en historial;
+  elseif (Cancelar) then
+    stop
+  else
+    :Muestra entrega anterior;
+    stop
+  endif
+endif
+
+partition "VISUALIZACIÓN DEL TALLER" {
+  :Sistema carga página del taller;
+  :Estudiante lee instrucciones detalladas;
+  note right
+    Instrucciones incluyen:
+    - Objetivo del taller
+    - Pasos a seguir
+    - Materiales necesarios
+    - Criterios de evaluación
+    - Fecha límite
+  end note
+}
+
+if (¿Necesita recursos?) then (Sí)
+  :Estudiante accede a recursos desde el taller;
+  :Sistema mantiene contexto;
+endif
+
+partition "TRABAJO EN LIBRETA FÍSICA" {
+  :Estudiante prepara materiales;
+  :Estudiante desarrolla actividad en libreta;
+  :Sistema puede mostrar temporizador opcional;
+}
+
+partition "CAPTURA DE EVIDENCIA" {
+  :Sistema ofrece métodos de captura;
+  if (Método seleccionado = "Tomar foto") then
+    :Activa cámara del dispositivo;
+    :Muestra vista previa en tiempo real;
+    :Estudiante captura imagen;
+    :Muestra vista previa de captura;
+  elseif (Método = "Seleccionar de galería") then
+    :Abre selector de archivos;
+    :Estudiante elige imagen;
+    :Muestra vista previa;
+  endif
+}
+
+partition "VALIDACIÓN DE IMAGEN" {
+  repeat
+    :Sistema verifica formato y tamaño;
+    if (formato != JPG/PNG) then
+      :Muestra: "Formato no soportado";
+      :Solicita nueva imagen;
+    elseif (tamaño > 5MB) then
+      :Muestra: "La imagen excede 5MB";
+      :Ofrece comprimir automáticamente;
+      if (Estudiante acepta) then
+        :Comprime imagen;
+      else
+        :Solicita nueva imagen;
+      endif
+    elseif (resolución < 800x600) then
+      :Muestra: "La imagen es muy pequeña";
+      :Sugiere tomar foto más cerca;
+    else
+      :Sistema detecta calidad básica;
+      if (imagen muy oscura o borrosa) then
+        :Muestra advertencia: "La imagen podría no ser legible";
+        :Ofrece:
+        - Continuar igual
+        - Tomar nueva foto;
+        if (Tomar nueva) then
+          :(repetir validación);
+        endif
+      endif
+    endif
+  repeat while (imagen_no_valida)
+}
+
+partition "CONFIRMACIÓN DE ENTREGA" {
+  :Sistema muestra resumen:
+  - Nombre del taller
+  - Fecha y hora actual
+  - Vista previa de imagen
+  - Advertencia de no modificación posterior;
+  :Solicita confirmación final;
+  
+  if (Estudiante confirma) then
+    :Sistema genera nombre único para imagen;
+    :Sistema guarda imagen en servidor;
+    :Registra entrega en base de datos:
+    - id_estudiante
+    - id_asignatura
+    - ruta_fotografía
+    - fecha_envio (timestamp)
+    - estado = "pendiente";
+    :Sistema actualiza progreso del estudiante;
+    :Sistema notifica al docente;
+    :Muestra mensaje de éxito;
+    :Muestra comprobante de entrega;
+    :Ofrece ver estado de la entrega;
+  else
+    :Estudiante puede:
+    - Tomar nueva foto
+    - Guardar borrador
+    - Cancelar entrega;
+  endif
+}
+
+stop
+@enduml

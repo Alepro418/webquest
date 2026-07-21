@@ -1,0 +1,107 @@
+@startuml
+title Secuencia: Estudiante - Consulta de Resultados y Estatus Motivacional
+
+actor Estudiante as E
+participant "Vista Resultados" as V
+participant "EstudianteController" as C
+participant "EvaluacionModel" as EVM
+participant "EntregaModel" as EM
+participant "Session" as S
+database "Base de Datos" as DB
+
+E -> V: Accede a "Mis Resultados"
+V -> C: resultados()
+C -> S: obtenerUsuarioActual()
+S --> C: estudiante (id)
+
+C -> EVM: obtenerTodasEvaluaciones(id_estudiante)
+EVM -> DB: SELECT e.*, t.titulo as taller_titulo, a.titulo as asignatura_titulo FROM evaluaciones e JOIN entregas_taller et ON e.id_entrega = et.id_entrega JOIN talleres t ON et.id_taller = t.id_taller JOIN asignaturas a ON t.id_asignatura = a.id_asignatura WHERE et.id_estudiante = ? ORDER BY e.fecha_evaluacion DESC
+DB --> EVM: lista_evaluaciones
+EVM --> C: lista_evaluaciones
+
+C -> EVM: calcularPromedioGeneral(id_estudiante)
+EVM -> DB: SELECT AVG(puntaje) FROM evaluaciones e JOIN entregas_taller et ON e.id_entrega = et.id_entrega WHERE et.id_estudiante = ?
+DB --> EVM: promedio_general
+EVM --> C: promedio_general
+
+C -> EVM: obtenerEstatusMotivacional(id_estudiante)
+EVM -> DB: SELECT estatus FROM usuarios WHERE id_usuario = ?
+DB --> EVM: estatus_actual
+
+C -> EM: contarEntregasCompletadas(id_estudiante)
+EM -> DB: SELECT COUNT(*) FROM entregas_taller WHERE id_estudiante = ?
+DB --> EM: total_entregas
+EM --> C: total_entregas
+
+C -> EVM: contarEvaluacionesRecibidas(id_estudiante)
+EVM -> DB: SELECT COUNT(*) FROM evaluaciones e JOIN entregas_taller et ON e.id_entrega = et.id_entrega WHERE et.id_estudiante = ?
+DB --> EVM: total_evaluaciones
+EVM --> C: total_evaluaciones
+
+C --> V: Muestra dashboard de resultados
+V --> E: Muestra dashboard
+note right of E
+    - Estatus motivacional destacado
+    - Promedio general
+    - Resumen de actividad
+end note
+
+== Detalle por Asignatura ==
+E -> V: Selecciona ver por asignatura
+V -> C: resultadosPorAsignatura()
+C -> EVM: agruparPorAsignatura(id_estudiante)
+EVM --> C: evaluaciones_agrupadas
+
+loop por cada asignatura
+    C -> C: prepararResumenAsignatura(evaluaciones)
+    C -> C: calcularPromedioAsignatura()
+    C -> C: contarTalleresCompletados()
+    C -> C: obtenerMejorCalificacion()
+end
+
+C --> V: Muestra tabla resumen por asignatura
+V --> E: Muestra resumen por asignatura
+note right of E
+    - Asignatura y promedio
+    - Barra de progreso
+    - Número de talleres
+end note
+
+== Detalle de Evaluación Individual ==
+E -> V: Selecciona una evaluación específica
+V -> C: detalleEvaluacion(id_evaluacion)
+C -> EVM: obtenerPorId(id_evaluacion)
+EVM -> DB: SELECT e.*, t.titulo, t.descripcion, et.ruta_fotografia FROM evaluaciones e JOIN entregas_taller et ON e.id_entrega = et.id_entrega JOIN talleres t ON et.id_taller = t.id_taller WHERE e.id_evaluacion = ?
+DB --> EVM: detalle_completo
+EVM --> C: detalle_completo
+
+C --> V: Muestra vista detallada
+V --> E: Muestra detalle de evaluación
+note right of E
+    - Taller evaluado
+    - Puntaje y escala
+    - Observaciones del docente
+    - Enlace a la foto entregada
+end note
+
+== Estatus Motivacional Detallado ==
+E -> V: Consulta "¿Qué significa mi estatus?"
+V -> C: explicarEstatus()
+C -> EVM: obtenerEstatusActual(id_estudiante)
+EVM --> C: estatus
+C -> C: obtenerMensajeMotivacional(estatus)
+C -> EVM: obtenerRecomendaciones(id_estudiante)
+EVM -> DB: SELECT * FROM evaluaciones e WHERE puntaje < 12 ORDER BY fecha_evaluacion DESC LIMIT 3
+DB --> EVM: areas_mejora
+EVM --> C: areas_mejora
+
+C --> V: Muestra explicación
+V --> E: Muestra explicación del estatus
+note right of E
+    - Significado del estatus
+    - Mensaje motivacional personalizado
+    - Recomendaciones de mejora
+    - Próximos desafíos
+end note
+
+@enduml

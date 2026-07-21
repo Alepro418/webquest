@@ -1,0 +1,100 @@
+@startuml
+title Actividad: Agregar Recurso Multimedia a Asignatura
+
+start
+
+:Docente selecciona asignatura;
+:Docente elige "Agregar Recurso";
+
+repeat
+  :Sistema muestra selector de tipo;
+  
+  if (Tipo = "Enlace Web") then
+    repeat
+      :Sistema solicita URL;
+      :Docente ingresa dirección;
+      :Sistema valida formato URL;
+      if (URL válida) then
+        :Sistema verifica accesibilidad;
+        :Sistema intenta obtener metadatos:
+        - Título de la página
+        - Descripción
+        - Imagen destacada;
+        :Sistema muestra vista previa;
+        :Docente puede modificar título;
+        :Docente agrega descripción personalizada;
+        :Sistema guarda recurso tipo "enlace";
+        :(URL válida);
+      else
+        :Muestra error de formato;
+        :Sugiere corregir URL;
+      endif
+    repeat while (URL no válida)
+    
+  elseif (Tipo = "Video") then
+    repeat
+      :Sistema solicita URL del video;
+      :Docente pega enlace (YouTube/Vimeo);
+      :Sistema valida formato del video;
+      if (video válido) then
+        :Sistema extrae ID del video;
+        :Sistema obtiene metadatos:
+        - Título
+        - Thumbnail
+        - Duración
+        - Canal/autor;
+        :Sistema muestra previsualización;
+        :Docente puede agregar descripción;
+        :Sistema guarda recurso tipo "video";
+        :(video válido);
+      else
+        :Muestra error: "Enlace no válido";
+        :Sugiere revisar URL;
+      endif
+    repeat while (video no válido)
+    
+  elseif (Tipo = "Documento") then
+    :Sistema abre selector de archivos;
+    repeat
+      :Docente selecciona archivo local;
+      :Sistema valida archivo;
+      if (tamaño > 10MB) then
+        :Muestra error de tamaño;
+        :Sugiere comprimir;
+      elseif (formato no permitido) then
+        :Muestra formatos aceptados:
+        - PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX
+        - JPG, PNG, GIF;
+      else
+        :Sistema sube archivo al servidor;
+        :Sistema genera nombre único;
+        :Sistema guarda ruta en base de datos;
+        :Sistema crea miniatura si aplica;
+        :Sistema registra metadatos:
+        - Tamaño
+        - Formato
+        - Fecha subida;
+        :Sistema guarda recurso tipo "documento";
+        :(archivo válido);
+      endif
+    repeat while (archivo no válido)
+    
+  else
+    :Muestra error: "Tipo no reconocido";
+    :Sugiere seleccionar Enlace Web, Video o Documento;
+  endif
+
+repeat while (Tipo no válido)
+
+:Sistema solicita información adicional:
+- ¿Visible para estudiantes?
+- ¿Obligatorio o complementario?
+- Orden de aparición;
+
+:Sistema actualiza listado de recursos;
+:Docente puede previsualizar cómo verán los estudiantes;
+
+:Sistema registra actividad en log docente;
+
+stop
+@enduml

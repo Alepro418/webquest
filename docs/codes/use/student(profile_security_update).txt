@@ -1,0 +1,54 @@
+@startuml
+title Actividad: Gestión de Perfil y Configuración de Seguridad
+
+start
+
+:Estudiante accede a "Mi Perfil";
+:Sistema muestra información personal;
+
+repeat
+  :Estudiante selecciona opción de configuración;
+  
+  if (Opción?) then (Cambiar contraseña)
+    :Solicita contraseña actual;
+    
+    if (¿Contraseña actual correcta?) then (Sí)
+      :Solicita nueva contraseña;
+      :Confirma nueva contraseña;
+      :Sistema valida fortaleza;
+      :Actualiza contraseña;
+      :Notifica cambio exitoso;
+    else (No)
+      :Muestra error de contraseña actual;
+    endif
+    
+  else if (Actualizar preguntas de seguridad) then
+    :Solicita contraseña actual;
+    
+    if (Verificada) then
+      :Muestra preguntas actuales (ocultando respuestas);
+      :Permite seleccionar nuevas preguntas;
+      :Estudiante ingresa nuevas respuestas;
+      :Sistema almacena nuevos hashes;
+      :Confirma actualización;
+    endif
+    
+  else if (Ver actividad reciente) then
+    :Sistema muestra historial de acceso:
+    - Últimos inicios de sesión
+    - Dispositivos utilizados
+    - Actividades realizadas
+    :Ofrece opción de cerrar otras sesiones;
+    
+  else if (Personalizar) then
+    :Estudiante puede:
+    - Elegir tema de color
+    - Configurar notificaciones
+    - Establecer recordatorios
+    :Sistema guarda preferencias;
+  endif
+  
+repeat while (¿Continuar configurando?) is (Sí)
+
+stop
+@enduml

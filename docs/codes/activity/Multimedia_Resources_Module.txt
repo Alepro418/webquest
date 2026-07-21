@@ -1,0 +1,95 @@
+@startuml
+title Actividad: Agregar Recurso Multimedia a Asignatura
+
+start
+
+:Docente selecciona asignatura;
+:Docente elige "Agregar Recurso";
+
+:Sistema muestra selector de tipo:
+
+if (Tipo seleccionado) then
+  if (Tipo = "Enlace Web") then
+    :Sistema solicita URL;
+    :Docente ingresa dirección;
+    
+    :Sistema valida formato URL;
+    
+    if (URL válida) then
+      :Sistema verifica accesibilidad;
+      :Sistema intenta obtener metadatos:
+      - Título de la página
+      - Descripción
+      - Imagen destacada;
+      
+      :Sistema muestra vista previa;
+      :Docente puede modificar título;
+      :Docente agrega descripción personalizada;
+      
+      :Sistema guarda recurso tipo "enlace";
+    else
+      :Muestra error de formato;
+      :Sugiere corregir URL;
+      backward
+    endif
+    
+  else if (Tipo = "Video") then
+    :Sistema solicita URL del video;
+    :Docente pega enlace (YouTube/Vimeo);
+    
+    :Sistema extrae ID del video;
+    :Sistema obtiene metadatos:
+    - Título
+    - Thumbnail
+    - Duración
+    - Canal/autor;
+    
+    :Sistema muestra previsualización;
+    :Docente puede agregar descripción;
+    
+    :Sistema guarda recurso tipo "video";
+    
+  else if (Tipo = "Documento") then
+    :Sistema abre selector de archivos;
+    :Docente selecciona archivo local;
+    
+    :Sistema valida archivo:
+    
+    if (tamaño > 10MB) then
+      :Muestra error de tamaño;
+      :Sugiere comprimir;
+      backward
+    endif
+    
+    if (formato no permitido) then
+      :Muestra formatos aceptados:
+      - PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX
+      - JPG, PNG, GIF;
+      backward
+    endif
+    
+    :Sistema sube archivo al servidor;
+    :Sistema genera nombre único;
+    :Sistema guarda ruta en base de datos;
+    :Sistema crea miniatura si aplica;
+    :Sistema registra metadatos:
+    - Tamaño
+    - Formato
+    - Fecha subida;
+    
+    :Sistema guarda recurso tipo "documento";
+  endif
+endif
+
+:Sistema solicita información adicional:
+- ¿Visible para estudiantes?
+- ¿Obligatorio o complementario?
+- Orden de aparición;
+
+:Sistema actualiza listado de recursos;
+:Docente puede previsualizar cómo verán los estudiantes;
+
+:Sistema registra actividad en log docente;
+
+stop
+@enduml

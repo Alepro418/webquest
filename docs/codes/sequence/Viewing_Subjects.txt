@@ -1,0 +1,88 @@
+@startuml
+title Secuencia: Estudiante - Visualización de Asignaturas Disponibles
+
+actor Estudiante as E
+participant "Vista Estudiante" as V
+participant "EstudianteController" as C
+participant "AsignaturaModel" as AM
+participant "EntregaModel" as EM
+participant "EvaluacionModel" as EVM
+participant "Session" as S
+database "Base de Datos" as DB
+
+E -> V: Accede a "Mis Asignaturas"
+V -> C: index()
+C -> S: obtenerUsuarioActual()
+S --> C: estudiante (id, grado)
+
+C -> AM: obtenerPorGrado(estudiante.grado)
+AM -> DB: SELECT * FROM asignaturas WHERE grado = ? AND estado = 'publicada'
+DB --> AM: lista_asignaturas
+AM --> C: lista_asignaturas
+
+loop por cada asignatura
+    C -> EM: obtenerProgreso(id_estudiante, id_asignatura)
+    EM -> DB: SELECT COUNT(*) FROM entregas_taller WHERE id_estudiante = ? AND id_asignatura = ?
+    DB --> EM: entregas_realizadas
+    EM -> DB: SELECT COUNT(*) FROM talleres WHERE id_asignatura = ?
+    DB --> EM: total_talleres
+    EM --> C: (entregas_realizadas / total_talleres) * 100
+    
+    C -> EVM: obtenerPromedioAsignatura(id_estudiante, id_asignatura)
+    EVM -> DB: SELECT AVG(puntaje) FROM evaluaciones e JOIN entregas_taller et ON e.id_entrega = et.id_entrega WHERE et.id_estudiante = ? AND et.id_asignatura = ?
+    DB --> EVM: promedio_asignatura
+    EVM --> C: promedio_asignatura
+    
+    C -> EM: obtenerUltimaActividad(id_estudiante, id_asignatura)
+    EM -> DB: SELECT MAX(fecha_envio) FROM entregas_taller WHERE id_estudiante = ? AND id_asignatura = ?
+    DB --> EM: ultima_actividad
+    EM --> C: ultima_actividad
+    
+    C -> C: prepararTarjetaAsignatura(asignatura, progreso, promedio, ultima)
+end
+
+C --> V: Muestra dashboard con tarjetas de asignaturas
+V --> E: Muestra dashboard
+note right of E
+    - Título y descripción breve
+    - Barra de progreso
+    - Promedio actual
+    - Última actividad
+end note
+
+E -> V: Selecciona una asignatura
+V -> C: show(id_asignatura)
+C -> AM: obtenerDetalle(id_asignatura)
+AM -> DB: SELECT * FROM asignaturas WHERE id_asignatura = ?
+DB --> AM: datos_asignatura
+AM --> C: datos_asignatura
+
+C -> AM: obtenerUnidades(id_asignatura)
+AM -> DB: SELECT * FROM unidades WHERE id_asignatura = ? ORDER BY orden
+DB --> AM: lista_unidades
+AM --> C: lista_unidades
+
+C -> AM: obtenerRecursos(id_asignatura)
+AM -> DB: SELECT * FROM recursos WHERE id_asignatura = ? ORDER BY tipo
+DB --> AM: lista_recursos
+AM --> C: lista_recursos
+
+C -> EM: obtenerTalleresPendientes(id_estudiante, id_asignatura)
+EM -> DB: SELECT t.* FROM talleres t LEFT JOIN entregas_taller et ON t.id_taller = et.id_taller AND et.id_estudiante = ? WHERE t.id_asignatura = ? AND et.id_entrega IS NULL
+DB --> EM: talleres_pendientes
+EM --> C: talleres_pendientes
+
+C -> EM: obtenerTalleresCompletados(id_estudiante, id_asignatura)
+EM -> DB: SELECT t.*, e.puntaje FROM talleres t JOIN entregas_taller et ON t.id_taller = et.id_taller JOIN evaluaciones e ON et.id_entrega = e.id_entrega WHERE et.id_estudiante = ? AND t.id_asignatura = ?
+DB --> EM: talleres_completados
+EM --> C: talleres_completados
+
+C --> V: Muestra vista detallada de asignatura
+V --> E: Muestra detalle de asignatura
+note right of E
+    - Unidades temáticas
+    - Recursos multimedia
+    - Talleres pendientes y completados
+end note
+
+@enduml
