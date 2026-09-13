@@ -41,7 +41,7 @@
 
                     <div class="cta-group">
                         <p>¿Listo para comenzar tu aventura científica?</p>
-                        <a href="login.php" class="btn-primary">Entrar al Sistema</a>
+                        <a href="sign_in.php" class="btn-primary">Entrar al Sistema</a>
                     </div>
                 </div>
             </section>

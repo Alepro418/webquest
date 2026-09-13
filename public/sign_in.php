@@ -47,6 +47,30 @@
             outline: none;
             box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
         }
+        /* Wrapper del campo de contraseña */
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .password-wrapper input {
+            flex: 1;
+            padding-right: 2.8rem; /* espacio para el botón */
+        }
+        .toggle-password {
+            position: absolute;
+            right: 0.6rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0.25rem;
+            line-height: 1;
+            color: inherit;
+        }
+        .toggle-password:hover {
+            opacity: 0.7;
+        }
         .login-btn {
             width: 100%;
             padding: 1rem;
@@ -122,7 +146,14 @@
 
                 <div class="form-group">
                     <label for="password">🔑 Contraseña</label>
-                    <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" required>
+                        <button type="button"
+                                id="toggle-password"
+                                class="toggle-password"
+                                aria-label="Mostrar contraseña"
+                                aria-pressed="false">👁️</button>
+                    </div>
                 </div>
 
                 <button type="submit" class="login-btn">Ingresar</button>
@@ -138,6 +169,9 @@
         <div style="text-align: center; margin-top: 2rem; color: #94a3b8;">
             <?php include 'functions/date.php'; ?>
         </div>
+
+        <!-- Script reutilizable: mostrar/ocultar contraseña -->
+        <script src="js/password.js"></script>
     </main>
 </body>
 </html>
