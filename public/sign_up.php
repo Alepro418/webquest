@@ -1,9 +1,14 @@
+<?php
+require dirname(__DIR__) . '/src/core/bootstrap.php';
+$flashError = flash('error');
+$flashSuccess = flash('success');
+?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../public/css/style.css">
+    <link rel="stylesheet" href="css/style.css">
     <title>Registro</title>
 </head>
 <body>
@@ -11,9 +16,20 @@
         <h1>Registro de Nuevo Usuario</h1>
         <div class="date-info"><?php include 'functions/date.php' ?></div>
 
+        <?php if ($flashError): ?>
+            <div class="alert alert-error" style="max-width:900px;margin:1rem auto;">
+                <?= e($flashError) ?>
+            </div>
+        <?php endif; ?>
+        <?php if ($flashSuccess): ?>
+            <div class="alert alert-success" style="max-width:900px;margin:1rem auto;">
+                <?= e($flashSuccess) ?>
+            </div>
+        <?php endif; ?>
+
         <div class="role-selection">
-            <button class="role-btn" onclick="setRole('estudiante')" id="btn-estudiante">Estudiante</button>
-            <button class="role-btn" onclick="setRole('docente')" id="btn-docente">Docente</button>
+            <button type="button" class="role-btn active" onclick="setRole('estudiante')" id="btn-estudiante">Estudiante</button>
+            <button type="button" class="role-btn" onclick="setRole('docente')" id="btn-docente">Docente</button>
         </div>
 
         <!-- Contenedor dinámico para la advertencia de estudiantes -->
@@ -24,7 +40,9 @@
                 <h2>Datos Personales</h2>
             </div>
 
-            <form action="../src/core/auth.php" method="post" class="form-registro-horizontal" id="registerForm" onsubmit="return validateForm(event)">
+            <form action="../src/core/auth.php?action=register" method="post" class="form-registro-horizontal" id="registerForm" onsubmit="return validateForm(event)">
+                <?= csrf_field() ?>
+                <input type="hidden" name="role" id="role-field" value="estudiante">
                 <!-- Fila 1: Nombre y Usuario -->
                 <div class="form-row">
                     <div class="form-group">

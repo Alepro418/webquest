@@ -1,7 +1,7 @@
 # 🌿 Webquest - Plataforma Educativa para Ciencias Naturales
 
 **Versión:** 1.0.0  
-**Última actualización:** 21 de febrero de 2026  
+**Última actualización:** 14 de septiembre de 2026  
 **Licencia:** MIT
 
 ---
@@ -193,12 +193,12 @@ El sistema se fundamenta en el **aprendizaje híbrido**, donde el entorno digita
 | Fase                         | Estado         |
 |------------------------------|----------------|
 | Análisis y Requerimientos    | ✅ Completada  |
-| Diseño del Sistema           | 🔄 En curso    |
-| Implementación               | ⏳ Próxima     |
-| Pruebas                      | ⏳ Próxima     |
+| Diseño del Sistema           | ✅ Completada  |
+| Implementación               | ✅ Completada  |
+| Pruebas                      | 🔄 En curso     |
 | Despliegue                   | ⏳ Próxima     |
 
----
+--- 
 
 ## 👥 Roles de Usuario
 

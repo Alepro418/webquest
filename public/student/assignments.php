@@ -1,3 +1,9 @@
+<?php
+require dirname(__DIR__, 2) . '/src/core/bootstrap.php';
+$user = require_login('estudiante');
+
+$entregas = Entrega::byStudent((int)$user['id']);
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5,30 +11,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Entregas - Webquest</title>
     <link rel="stylesheet" href="../css/style.css">
-    <style>
-        .assignment-status {
-            display: inline-block;
-            padding: 0.2rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .assignment-status.aprobado {
-            background: #e8f5e9;
-            color: #1b5e20;
-        }
-
-        .assignment-status.revisando {
-            background: #fff3e0;
-            color: #e65100;
-        }
-
-        .assignment-status.pendiente {
-            background: #f1f5f9;
-            color: #475569;
-        }
-    </style>
 </head>
 <body>
     <div class="dashboard-container">
@@ -36,99 +18,57 @@
 
         <main class="main-content">
             <header class="top-bar">
-                <h1>📬 Mis Entregas</h1>
-                <div class="date-info">
-                    <?php 
-                        date_default_timezone_set('America/Caracas');
-                        echo date('d/m/Y');
-                    ?>
-                </div>
+                <h1>📤 Historial de Entregas</h1>
+                <div class="date-info"><?php include dirname(__DIR__, 2) . '/public/functions/date.php'; ?></div>
             </header>
 
-            <!-- KPIs rápidos -->
-            <section class="kpi-grid">
-                <div class="kpi-card">
-                    <h3>📤 Pendientes</h3>
-                    <p class="number">3</p>
-                </div>
-                <div class="kpi-card">
-                    <h3>✅ Entregadas</h3>
-                    <p class="number">8</p>
-                </div>
-                <div class="kpi-card">
-                    <h3>⭐ Calificadas</h3>
-                    <p class="number">5</p>
-                </div>
-                <div class="kpi-card alert">
-                    <h3>📊 Promedio</h3>
-                    <p class="number">16.5</p>
-                </div>
-            </section>
-
-            <!-- Tabla de entregas -->
             <section class="data-section">
                 <div class="table-header">
-                    <h2>Historial de entregas</h2>
+                    <h2>Tus entregas registradas</h2>
                 </div>
+
+                <?php if (count($entregas) === 0): ?>
+                    <p style="text-align:center;color:#5a7a6a;padding:2rem;">
+                        Aún no has entregado ninguna evidencia. Visita <a href="subjects.php" style="color:var(--primary);">tus asignaturas</a> para empezar.
+                    </p>
+                <?php endif; ?>
 
                 <table class="data-table">
                     <thead>
                         <tr>
                             <th>Asignatura</th>
                             <th>Taller</th>
-                            <th>Fecha entrega</th>
-                            <th>Estado</th>
+                            <th>Fecha de Envío</th>
+                            <th>Evidencia</th>
                             <th>Calificación</th>
-                            <th>Acciones</th>
+                            <th>Comentario del Docente</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Ciencias Naturales - 4to</td>
-                            <td>Ecosistemas</td>
-                            <td>28/06/2026</td>
-                            <td><span class="assignment-status aprobado">✅ Aprobado</span></td>
-                            <td>18.5</td>
-                            <td><button class="btn-sm" onclick="verFeedback(1)">👁️ Ver feedback</button></td>
-                        </tr>
-                        <tr>
-                            <td>El Reino Animal - 5to</td>
-                            <td>Vertebrados</td>
-                            <td>25/06/2026</td>
-                            <td><span class="assignment-status revisando">🔄 Revisando</span></td>
-                            <td>—</td>
-                            <td><button class="btn-sm" onclick="verFeedback(2)">👁️ Ver feedback</button></td>
-                        </tr>
-                        <tr>
-                            <td>La Célula - 6to</td>
-                            <td>Organelos</td>
-                            <td>20/06/2026</td>
-                            <td><span class="assignment-status aprobado">✅ Aprobado</span></td>
-                            <td>19.0</td>
-                            <td><button class="btn-sm" onclick="verFeedback(3)">👁️ Ver feedback</button></td>
-                        </tr>
-                        <tr>
-                            <td>Ciencias Naturales - 4to</td>
-                            <td>Cadena Alimenticia</td>
-                            <td>—</td>
-                            <td><span class="assignment-status pendiente">⏳ Pendiente</span></td>
-                            <td>—</td>
-                            <td><button class="btn-sm" onclick="subirPendiente(4)">📤 Subir</button></td>
-                        </tr>
+                        <?php foreach ($entregas as $en): ?>
+                            <tr>
+                                <td><?= e($en['asignatura_titulo']) ?><br><small style="color:#5a7a6a;"><?= (int)$en['grado'] ?>° <?= e($en['seccion']) ?></small></td>
+                                <td><?= e($en['taller_titulo']) ?></td>
+                                <td><?= e(date('d/m/Y H:i', strtotime($en['fecha_envio']))) ?></td>
+                                <td>
+                                    <a class="btn-sm btn-detail" href="<?= e(asset_url($en['ruta_fotografia'])) ?>" target="_blank" rel="noopener">🔍 Ver foto</a>
+                                </td>
+                                <td>
+                                    <?php if ($en['puntaje'] !== null): ?>
+                                        <span class="status st-bueno">⭐ <?= number_format((float)$en['puntaje'], 1) ?> • <?= e($en['escala_letra']) ?></span>
+                                    <?php else: ?>
+                                        <span class="status" style="background:#fef3c7;color:#92400e;">⏳ En revisión</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="max-width:260px;">
+                                    <?= e((string)($en['observaciones'] ?? '—')) ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </section>
         </main>
     </div>
-
-    <script>
-        function verFeedback(id) {
-            alert('👁️ Ver feedback de la entrega ' + id);
-        }
-
-        function subirPendiente(id) {
-            alert('📤 Subir evidencia para el taller pendiente ' + id);
-        }
-    </script>
 </body>
 </html>

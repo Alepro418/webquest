@@ -1,6 +1,6 @@
 /**
  * record.js
- * Responsabilidad: cambio de rol, validación general y envío del formulario.
+ * Responsabilidad: cambio de rol, validación general y envío del formulario de registro.
  *
  * Depende de:
  *   - security-questions.js  (buildSecurityQuestionsHTML, collectSecurityQuestions)
@@ -39,6 +39,12 @@ function setRole(role) {
     document.getElementById('btn-docente').classList.remove('active');
     document.getElementById(`btn-${role}`).classList.add('active');
 
+    // Sincronizar campo oculto con el servidor
+    const roleField = document.getElementById('role-field');
+    if (roleField) {
+        roleField.value = role;
+    }
+
     const warningContainer  = document.getElementById('warning-container');
     const emailContainer    = document.getElementById('email-container');
     const securityContainer = document.getElementById('security-container');
@@ -58,83 +64,57 @@ function setRole(role) {
 
 // --- Validación y envío ---
 function validateForm(event) {
-    event.preventDefault();
-
     const nombre   = document.getElementById('name').value.trim();
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
 
     if (nombre.length < 3) {
+        event.preventDefault();
         alert('El nombre debe tener al menos 3 caracteres');
         return false;
     }
 
     if (username.length < 4) {
+        event.preventDefault();
         alert('El nombre de usuario debe tener al menos 4 caracteres');
         return false;
     }
 
-    // Validación estricta de contraseña
     if (password.length < 8) {
+        event.preventDefault();
         alert('La contraseña debe tener al menos 8 caracteres');
         return false;
     }
 
     const puntos = calculatePasswordScore(password);
     if (puntos < 3) {
+        event.preventDefault();
         alert('La contraseña es demasiado débil. Usa mayúsculas, minúsculas, números y un símbolo.');
         return false;
     }
-
-    const formData = new FormData();
-    formData.append('role', currentRole);
-    formData.append('name', nombre);
-    formData.append('username', username);
-    formData.append('password', password);
 
     if (currentRole === 'docente') {
         const emailInput = document.getElementById('email');
         const email = emailInput ? emailInput.value.trim() : '';
 
         if (!email.includes('@') || !email.includes('.')) {
+            event.preventDefault();
             alert('Por favor, ingresa un correo electrónico válido');
             return false;
         }
-
-        formData.append('email', email);
-
-        console.log('Registrando docente:', {
-            rol: 'docente',
-            nombre, username, email, password
-        });
-        alert('¡Docente registrado exitosamente!');
-
-    } else {
-        // Delegamos a security-questions.js
-        const result = collectSecurityQuestions();
-
-        if (!result.ok) {
-            alert(result.message);
-            return false;
-        }
-
-        // Agregar las 5 preguntas al FormData
-        result.data.forEach((item, index) => {
-            formData.append(`pregunta${index + 1}`, item.pregunta);
-            formData.append(`respuesta${index + 1}`, item.respuesta);
-        });
-
-        console.log('Registrando estudiante:', {
-            rol: 'estudiante',
-            nombre, username, password,
-            preguntasSeguridad: result.data
-        });
-        alert('¡Estudiante registrado exitosamente!\n\nRecuerda guardar tus preguntas de seguridad en un lugar seguro.');
+        return true;
     }
 
-    // Aquí puedes enviar el FormData a tu servidor
-    // document.querySelector('form').submit();
+    // Estudiante: preguntas de seguridad
+    const result = collectSecurityQuestions();
+    if (!result.ok) {
+        event.preventDefault();
+        alert(result.message);
+        return false;
+    }
 
+    // Las respuestas ya están en el formulario (name="respuesta1..5", name="pregunta1..5"),
+    // así que el formulario se envía de forma normal al servidor.
     return true;
 }
 

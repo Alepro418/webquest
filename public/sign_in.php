@@ -1,9 +1,16 @@
+<?php
+require dirname(__DIR__) . '/src/core/bootstrap.php';
+$user = current_user();
+if ($user !== null) {
+    redirect(site_url($user['rol'] === 'docente' ? '/public/teaching/index.php' : '/public/student/index.php'));
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../public/css/style.css">
+    <link rel="stylesheet" href="css/style.css">
     <title>Iniciar Sesión - Webquest</title>
     <style>
         .login-container {
@@ -125,20 +132,22 @@
                 <p>Ingresa tus credenciales para acceder</p>
             </div>
 
-            <!-- Mensajes de error/éxito (PHP los llenará después) -->
-            <?php if (isset($_GET['error'])): ?>
+            <!-- Mensajes de error/éxito -->
+            <?php $flashError = flash('error'); $flashSuccess = flash('success'); ?>
+            <?php if ($flashError): ?>
                 <div class="alert alert-error">
-                    <?= htmlspecialchars($_GET['error']) ?>
+                    <?= e($flashError) ?>
                 </div>
             <?php endif; ?>
             
-            <?php if (isset($_GET['success'])): ?>
+            <?php if ($flashSuccess): ?>
                 <div class="alert alert-success">
-                    <?= htmlspecialchars($_GET['success']) ?>
+                    <?= e($flashSuccess) ?>
                 </div>
             <?php endif; ?>
 
             <form action="../src/core/auth.php?action=login" method="post">
+                <?= csrf_field() ?>
                 <div class="form-group">
                     <label for="username">👤 Usuario</label>
                     <input type="text" id="username" name="username" placeholder="Ingresa tu usuario" required autofocus>

@@ -1,0 +1,8 @@
+# Archivos subidos en tiempo de ejecución (evidencias, perfiles, recursos)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Logs y exportaciones generadas por la aplicación
+/logs/*
+/exports/*
+/cache/*
