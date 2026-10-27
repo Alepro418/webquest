@@ -41,8 +41,12 @@ final class Asignatura
     }
 
     /** Asignaturas publicadas disponibles para un estudiante (por grado + sección). */
-    public static function forStudent(int $grado, string $seccion): array
+    public static function forStudent(int $grado, ?string $seccion): array
     {
+        $seccion = strtoupper(trim((string)$seccion));
+        if ($grado <= 0 || $seccion === '') {
+            return [];
+        }
         return Database::rows(
             'SELECT * FROM Asignaturas
              WHERE estado = \'publicada\' AND grado = :g AND seccion = :s

@@ -79,7 +79,10 @@ final class Upload
             $imgW = (int)Config::get('uploads.image_validation.max_width', 4096);
             $imgH = (int)Config::get('uploads.image_validation.max_height', 4096);
             if ($size[0] < $minW || $size[1] < $minH) {
-                return ['ok' => false, 'error' => "La imagen debe tener al menos {$minW}x{$minH} píxeles."];
+                return [
+                    'ok' => false,
+                    'error' => 'Tu foto es demasiado pequeña para leer tu trabajo. Tómala desde más cerca, con buena luz y apuntando de frente a tu libreta.',
+                ];
             }
             if ($size[0] > $imgW || $size[1] > $imgH) {
                 return ['ok' => false, 'error' => "La imagen supera el tamaño máximo de {$imgW}x{$imgH} píxeles."];

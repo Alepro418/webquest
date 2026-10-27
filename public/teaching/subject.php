@@ -112,7 +112,7 @@ $flashError = flash('error');
                         <div style="display:flex;gap:.5rem;">
                             <a class="btn-sm" href="taller.php?id=<?= (int)$t['id_taller'] ?>">📥 Revisar Entregas</a>
                             <button class="btn-sm" onclick="abrirTaller(<?= (int)$t['id_taller'] ?>, '<?= e($t['titulo'], true) ?>', '<?= e($t['descripcion'], true) ?>', '<?= e((string)$t['unidad'], true) ?>', '<?= e((string)$t['fecha_limite'], true) ?>')">✏️</button>
-                            <form method="post" action="../src/core/subject.php" onsubmit="return confirm('¿Eliminar este taller y sus entregas?')">
+                            <form method="post" action="../../src/core/subject.php" onsubmit="return confirm('¿Eliminar este taller y sus entregas?')">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="delete_taller">
                                 <input type="hidden" name="id" value="<?= (int)$t['id_taller'] ?>">
@@ -147,7 +147,7 @@ $flashError = flash('error');
                                 <?= $r['tipo'] === 'enlace' ? 'Enlace' : ($r['tipo'] === 'video' ? 'Video' : 'Documento') ?>
                             </span>
                             <a class="btn-sm" href="<?= e(asset_url($r['url_o_ruta'])) ?>" target="_blank" rel="noopener">🔎 Abrir</a>
-                            <form method="post" action="../src/core/subject.php" onsubmit="return confirm('¿Eliminar este recurso?')">
+                            <form method="post" action="../../src/core/subject.php" onsubmit="return confirm('¿Eliminar este recurso?')">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="delete_recurso">
                                 <input type="hidden" name="id" value="<?= (int)$r['id_recurso'] ?>">
@@ -164,7 +164,7 @@ $flashError = flash('error');
     <div class="modal" id="modalTaller">
         <div class="modal-content">
             <h3 id="tallerTitulo">Nuevo Taller</h3>
-            <form method="post" action="../src/core/subject.php" enctype="multipart/form-data">
+            <form method="post" action="../../src/core/subject.php" enctype="multipart/form-data">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="save_taller">
                 <input type="hidden" name="id" id="taller_id" value="0">
@@ -199,7 +199,7 @@ $flashError = flash('error');
     <div class="modal" id="modalRecurso">
         <div class="modal-content">
             <h3>Nuevo Recurso</h3>
-            <form method="post" action="../src/core/subject.php" enctype="multipart/form-data">
+            <form method="post" action="../../src/core/subject.php" enctype="multipart/form-data">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="save_recurso">
                 <input type="hidden" name="asignatura_id" value="<?= (int)$subject['id_asignatura'] ?>">

@@ -64,7 +64,9 @@ $pendientes = count(array_filter($entregas, fn($e) => $e['puntaje'] === null));
                     <h2>Mis Asignaturas</h2>
                 </div>
 
-                <?php if (count($subjects) === 0): ?>
+                <?php if ($user['grado'] === null || $user['seccion'] === null): ?>
+                    <p style="text-align:center;color:#5a7a6a;padding:1.5rem;">Aún no perteneces a una cohorte. Tu docente te asignará el grado y la sección para ver tus asignaturas.</p>
+                <?php elseif (count($subjects) === 0): ?>
                     <p style="text-align:center;color:#5a7a6a;padding:1.5rem;">Tu docente aún no ha publicado asignaturas para tu cohorte (<?= (int)$user['grado'] ?>° "<?= e($user['seccion']) ?>").</p>
                 <?php endif; ?>
 

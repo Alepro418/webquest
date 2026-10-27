@@ -194,8 +194,8 @@ El sistema se fundamenta en el **aprendizaje híbrido**, donde el entorno digita
 |------------------------------|----------------|
 | Análisis y Requerimientos    | ✅ Completada  |
 | Diseño del Sistema           | ✅ Completada  |
-| Implementación               | ✅ Completada  |
-| Pruebas                      | 🔄 En curso     |
+| Implementación               | 🔄 Iterando    |
+| Pruebas                      | 🔄 En curso    |
 | Despliegue                   | ⏳ Próxima     |
 
 --- 

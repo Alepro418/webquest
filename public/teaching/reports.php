@@ -2,66 +2,54 @@
 require dirname(__DIR__, 2) . '/src/core/bootstrap.php';
 $user = require_login('docente');
 
-$subjects = Asignatura::byDocente((int)$user['id']);
-$asignaturaId = (int)($_GET['asignatura'] ?? 0);
-if ($asignaturaId === 0 && count($subjects) > 0) {
-    $asignaturaId = (int)$subjects[0]['id_asignatura'];
-}
+$cohortes = Reporte::cohortesDeDocente((int)$user['id']);
 
-$estudianteFilter = (int)($_GET['estudiante'] ?? 0);
-$reporte = null;
-$asignatura = null;
-
-if ($asignaturaId > 0) {
-    $asignatura = Asignatura::find($asignaturaId);
-    if ($asignatura !== null && (int)$asignatura['id_docente'] !== (int)$user['id']) {
-        $asignatura = null;
+$grado = (int)($_GET['grado'] ?? 0);
+$seccion = '';
+if ($grado === 0 && count($cohortes) > 0) {
+    $grado = (int)$cohortes[0]['grado'];
+    $seccion = $cohortes[0]['seccion'];
+} else {
+    if ($grado === 0) {
+        $grado = null;
+    } else {
+        $seccion = (string)($_GET['seccion'] ?? 'A');
     }
 }
 
-if ($asignatura !== null) {
-    $rows = Reporte::studentsByDocenteCohorte((int)$user['id']);
-    $cohorte = array_values(array_filter($rows, fn($s) => (int)$s['grado'] === (int)$asignatura['grado'] && $s['seccion'] === $asignatura['seccion']));
+$estudianteId = (int)($_GET['estudiante'] ?? 0);
+$resumen = null;
 
-    $reporte = [];
-    foreach ($cohorte as $s) {
-        $prog = Reporte::progresoEstudianteEnAsignatura((int)$s['id_usuario'], $asignatura);
-        $reporte[] = [
-            'id_usuario' => (int)$s['id_usuario'],
-            'nombre'     => $s['nombre_completo'],
-            'total'      => $prog['total'],
-            'entregados' => $prog['entregados'],
-            'evaluados'  => $prog['evaluados'],
-            'promedio'   => $prog['promedio'],
-        ];
-    }
-    usort($reporte, fn($a, $b) => $a['nombre'] <=> $b['nombre']);
-
-    if ($estudianteFilter > 0) {
-        $reporte = array_values(array_filter($reporte, fn($r) => $r['id_usuario'] === $estudianteFilter));
-    }
+if ($grado !== null && $seccion !== '') {
+    $resumen = Reporte::resumenSeccion((int)$user['id'], $grado, $seccion, $estudianteId > 0 ? $estudianteId : null);
+    $promedioSeccion = Reporte::promedioSeccion($resumen);
 }
 
 $export = $_GET['export'] ?? '';
-if ($export === 'csv' && $asignatura !== null && $reporte !== null) {
+
+if ($export === 'csv' && $resumen !== null) {
+    $nombre = "reporte_general_{$grado}_{$seccion}";
     header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="reporte_' . preg_replace('/[^a-zA-Z0-9_]/', '_', $asignatura['titulo']) . '.csv"');
+    header('Content-Disposition: attachment; filename="' . $nombre . '.csv"');
     $out = fopen('php://output', 'wb');
     fwrite($out, "\xEF\xBB\xBF");
-    fputcsv($out, ['Asignatura', $asignatura['titulo'], 'Grado', (int)$asignatura['grado'] . '° ' . $asignatura['seccion']]);
+    fputcsv($out, ['Reporte General - Grado', $grado, 'Seccion', $seccion, 'Docente', $user['nombre']]);
     fputcsv($out, []);
-    fputcsv($out, ['Estudiante', 'Talleres Totales', 'Entregados', 'Evaluados', 'Promedio', 'Estatus']);
-    foreach ($reporte as $r) {
+    fputcsv($out, ['Estudiante', 'Asignaturas', 'Talleres Totales', 'Entregados', 'Evaluados', 'Promedio', 'Estatus']);
+    foreach ($resumen['rows'] as $r) {
         $est = $r['promedio'] !== null ? Reporte::estatusConfig((float)$r['promedio']) : null;
         fputcsv($out, [
             $r['nombre'],
-            $r['total'],
+            $r['asignaturas'],
+            $r['talleres'],
             $r['entregados'],
             $r['evaluados'],
             $r['promedio'] !== null ? number_format($r['promedio'], 1) : 'Sin evaluaciones',
-            $est['nombre'] ?? '—',
+            $est['nombre'] ?? '-',
         ]);
     }
+    fputcsv($out, []);
+    fputcsv($out, ['PROMEDIO DE LA SECCION', $promedioSeccion !== null ? number_format($promedioSeccion, 1) . '/20' : 'Sin evaluaciones']);
     fclose($out);
     exit;
 }
@@ -82,78 +70,157 @@ $flashSuccess = flash('success');
 
         <main class="main-content">
             <header class="top-bar">
-                <h1>📊 Reportes de Rendimiento</h1>
+                <h1>📊 Reporte de la Sección</h1>
                 <div class="date-info"><?php include dirname(__DIR__, 2) . '/public/functions/date.php'; ?></div>
             </header>
 
             <?php if ($flashSuccess): ?><div class="alert" style="background:#dcfce7;border-left:4px solid #22c55e;color:#166534;padding:0.8rem 1.2rem;border-radius:8px;margin-bottom:1rem;"><?= e($flashSuccess) ?></div><?php endif; ?>
 
+            <?php if (count($cohortes) === 0): ?>
+                <section class="data-section">
+                    <p style="text-align:center;color:#5a7a6a;padding:2rem;">Aún no tienes asignaturas. Crea una para generar el reporte de tu sección.</p>
+                </section>
+            <?php else: ?>
+
+            <!-- Filtros -->
             <div class="filter-bar">
-                <form method="get" action="reports.php" style="display:flex;gap:.5rem;align-items:center;width:100%;">
-                    <select name="asignatura" onchange="this.form.submit()">
-                        <?php if (count($subjects) === 0): ?>
-                            <option value="0">Aún no tienes asignaturas</option>
-                        <?php endif; ?>
-                        <?php foreach ($subjects as $s): ?>
-                            <option value="<?= (int)$s['id_asignatura'] ?>" <?= $asignaturaId === (int)$s['id_asignatura'] ? 'selected' : '' ?>><?= e($s['titulo']) ?> (<?= (int)$s['grado'] ?>° <?= e($s['seccion']) ?>)</option>
+                <form method="get" action="reports.php" style="display:flex;gap:.5rem;align-items:center;width:100%;flex-wrap:wrap;">
+                    <label style="font-weight:600;">Cohorte</label>
+                    <select name="grado" onchange="this.form.submit()">
+                        <?php foreach ($cohortes as $c): ?>
+                            <?php if ((int)$c['grado'] === $grado && $c['seccion'] === $seccion): ?>
+                                <option value="<?= (int)$c['grado'] ?>" selected><?= (int)$c['grado'] ?>° <?= e($c['seccion']) ?></option>
+                            <?php else: ?>
+                                <option value="<?= (int)$c['grado'] ?>"><?= (int)$c['grado'] ?>° <?= e($c['seccion']) ?></option>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     </select>
-                    <?php if ($reporte !== null): ?>
+                    <?php if ($grado !== null && $seccion !== ''): ?>
                         <select name="estudiante" onchange="this.form.submit()">
-                            <option value="0">Todos los estudiantes</option>
-                            <?php foreach (Reporte::studentsByDocenteCohorte((int)$user['id']) as $r): ?>
-                                <option value="<?= (int)$r['id_usuario'] ?>" <?= $estudianteFilter === (int)$r['id_usuario'] ? 'selected' : '' ?>><?= e($r['nombre_completo']) ?></option>
+                            <option value="0">Toda la sección</option>
+                            <?php foreach ($resumen['rows'] as $r): ?>
+                                <option value="<?= (int)$r['id_usuario'] ?>" <?= $estudianteId === (int)$r['id_usuario'] ? 'selected' : '' ?>><?= e($r['nombre']) ?></option>
                             <?php endforeach; ?>
                         </select>
-                    <?php endif; ?>
-                    <?php if ($asignatura !== null && $reporte !== null): ?>
-                        <a class="btn-primary" href="reports.php?asignatura=<?= $asignaturaId ?>&estudiante=<?= $estudianteFilter ?>&export=csv" style="margin-left:auto;">⬇️ Exportar CSV</a>
+                        <a class="btn-primary" href="reports.php?grado=<?= $grado ?>&seccion=<?= e($seccion) ?>&estudiante=<?= $estudianteId ?>&export=csv" style="margin-left:auto;">⬇️ Exportar CSV</a>
                     <?php endif; ?>
                 </form>
             </div>
 
-            <?php if ($asignatura === null): ?>
-                <section class="data-section">
-                    <p style="text-align:center;color:#5a7a6a;padding:2rem;">Crea asignaturas para generar reportes de rendimiento.</p>
-                </section>
-            <?php else: ?>
-                <section class="data-section">
-                    <div class="table-header">
-                        <h2><?= e($asignatura['titulo']) ?> — Cohorte <?= (int)$asignatura['grado'] ?>° <?= e($asignatura['seccion']) ?></h2>
-                    </div>
+            <?php if ($grado !== null && $seccion !== ''): ?>
+                <!-- KPIs de la sección -->
+                <div class="kpi-grid" style="margin:1.5rem 0;">
+                    <div class="kpi-card"><h3>🎓 Estudiantes</h3><p class="number"><?= count($resumen['rows']) ?></p></div>
+                    <div class="kpi-card"><h3>📚 Asignaturas</h3><p class="number"><?= $resumen['subjects'] ?></p></div>
+                    <div class="kpi-card"><h3>📤 Entregas Totales</h3><p class="number"><?= array_sum(array_column($resumen['rows'], 'entregados')) ?></p></div>
+                    <div class="kpi-card" style="border-left:4px solid var(--primary);"><h3>⭐ Promedio de la Sección</h3><p class="number"><?= $promedioSeccion !== null ? number_format($promedioSeccion, 1) . '/20' : '—' ?></p></div>
+                </div>
 
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Estudiante</th>
-                                <th>Talleres Totales</th>
-                                <th>Entregados</th>
-                                <th>Evaluados</th>
-                                <th>Promedio</th>
-                                <th>Estatus Motivacional</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($reporte as $r): ?>
-                                <?php $est = $r['promedio'] !== null ? Reporte::estatusConfig((float)$r['promedio']) : null; ?>
+                <?php if ($estudianteId > 0 && count($resumen['rows']) > 0): ?>
+                    <!-- Reporte individual con desglose por asignatura -->
+                    <?php $alumno = $resumen['rows'][0]; $est = $alumno['promedio'] !== null ? Reporte::estatusConfig((float)$alumno['promedio']) : null; ?>
+                    <section class="data-section">
+                        <div class="table-header">
+                            <h2>👤 Reporte Individual: <?= e($alumno['nombre']) ?></h2>
+                            <a class="btn-sm" href="reports.php?grado=<?= $grado ?>&seccion=<?= e($seccion) ?>">← Ver toda la sección</a>
+                        </div>
+                        <div class="table-actions" style="margin-bottom:1rem;">
+                            <a class="btn-sm" href="reports.php?grado=<?= $grado ?>&seccion=<?= e($seccion) ?>&estudiante=<?= $estudianteId ?>&export=csv">⬇️ Descargar CSV</a>
+                        </div>
+
+                        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">
+                            <div class="kpi-card" style="flex:1;min-width:160px;"><h3>Promedio General</h3><p class="number"><?= $alumno['promedio'] !== null ? number_format($alumno['promedio'], 1) . '/20' : '—' ?></p></div>
+                            <div class="kpi-card" style="flex:1;min-width:160px;"><h3>Talleres</h3><p class="number"><?= $alumno['talleres'] ?></p></div>
+                            <div class="kpi-card" style="flex:1;min-width:160px;"><h3>Estatus</h3><p class="number" style="font-size:1rem;">
+                                <?php if ($est !== null): ?>
+                                    <span class="status" style="background:<?= e($est['bg_color']) ?>;color:<?= e($est['color']) ?>;"><?= e($est['icon']) ?> <?= e($est['nombre']) ?></span>
+                                <?php else: ?>
+                                    <span class="status" style="background:#f1f5f9;color:#475569;">Sin evaluaciones</span>
+                                <?php endif; ?>
+                            </p></div>
+                        </div>
+
+                        <table class="data-table">
+                            <thead>
                                 <tr>
-                                    <td><strong><?= e($r['nombre']) ?></strong></td>
-                                    <td><?= $r['total'] ?></td>
-                                    <td><?= $r['entregados'] ?></td>
-                                    <td><?= $r['evaluados'] ?></td>
-                                    <td><strong><?= $r['promedio'] !== null ? number_format($r['promedio'], 1) : '—' ?></strong></td>
-                                    <td>
-                                        <?php if ($est !== null): ?>
-                                            <span class="status" style="background:<?= e($est['bg_color']) ?>;color:<?= e($est['color']) ?>;"><?= e($est['icon']) ?> <?= e($est['nombre']) ?></span>
-                                        <?php else: ?>
-                                            <span class="status" style="background:#f1f5f9;color:#475569;">Sin evaluaciones</span>
-                                        <?php endif; ?>
-                                    </td>
+                                    <th>Asignatura</th>
+                                    <th>Talleres Totales</th>
+                                    <th>Entregados</th>
+                                    <th>Evaluados</th>
+                                    <th>Promedio</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </section>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($alumno['detalle'] as $d): ?>
+                                    <tr>
+                                        <td><strong><?= e($d['titulo']) ?></strong></td>
+                                        <td><?= $d['talleres'] ?></td>
+                                        <td><?= $d['entregados'] ?></td>
+                                        <td><?= $d['evaluados'] ?></td>
+                                        <td><strong><?= $d['promedio'] !== null ? number_format($d['promedio'], 1) . '/20' : '—' ?></strong></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                            <tfoot>
+                                <tr style="background:#f6fbf6;border-top:2px solid var(--primary);">
+                                    <td colspan="4" style="text-align:right;font-weight:700;">⭐ PROMEDIO GENERAL</td>
+                                    <td><strong style="font-size:1.1rem;color:var(--primary);"><?= $alumno['promedio'] !== null ? number_format($alumno['promedio'], 1) . '/20' : '—' ?></strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </section>
+                <?php else: ?>
+                    <!-- Tabla general de la sección -->
+                    <section class="data-section">
+                        <div class="table-header">
+                            <h2>Vista General <?= $grado ?>° "<?= e($seccion) ?>"</h2>
+                        </div>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Estudiante</th>
+                                    <th>Asignaturas</th>
+                                    <th>Talleres Totales</th>
+                                    <th>Entregados</th>
+                                    <th>Evaluados</th>
+                                    <th>Promedio</th>
+                                    <th>Estatus</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (count($resumen['rows']) === 0): ?>
+                                    <tr><td colspan="7" style="text-align:center;color:#5a7a6a;">No hay estudiantes en esta sección.</td></tr>
+                                <?php endif; ?>
+                                <?php foreach ($resumen['rows'] as $r): ?>
+                                    <?php $est = $r['promedio'] !== null ? Reporte::estatusConfig((float)$r['promedio']) : null; ?>
+                                    <tr>
+                                        <td><strong><?= e($r['nombre']) ?></strong></td>
+                                        <td><?= $r['asignaturas'] ?></td>
+                                        <td><?= $r['talleres'] ?></td>
+                                        <td><?= $r['entregados'] ?></td>
+                                        <td><?= $r['evaluados'] ?></td>
+                                        <td><strong><?= $r['promedio'] !== null ? number_format($r['promedio'], 1) : '—' ?></strong></td>
+                                        <td>
+                                            <?php if ($est !== null): ?>
+                                                <span class="status" style="background:<?= e($est['bg_color']) ?>;color:<?= e($est['color']) ?>;"><?= e($est['icon']) ?> <?= e($est['nombre']) ?></span>
+                                            <?php else: ?>
+                                                <span class="status" style="background:#f1f5f9;color:#475569;">Sin evaluaciones</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                            <tfoot>
+                                <tr style="background:#f6fbf6;border-top:2px solid var(--primary);">
+                                    <td colspan="6" style="text-align:right;font-weight:700;">⭐ PROMEDIO DE LA SECCIÓN</td>
+                                    <td><strong style="font-size:1.1rem;color:var(--primary);"><?= $promedioSeccion !== null ? number_format($promedioSeccion, 1) . '/20' : '—' ?></strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </section>
+                <?php endif; ?>
+            <?php endif; ?>
             <?php endif; ?>
         </main>
     </div>

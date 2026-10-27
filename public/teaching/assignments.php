@@ -98,10 +98,10 @@ $flashError = flash('error');
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <?php if ($en['puntaje'] !== null): ?>
-                                        <span class="status st-bueno"><?= e($en['estatus']) ?></span>
+                                    <?php if ($en['puntaje'] !== null): $est = Reporte::estatusConfig((float)$en['puntaje']); ?>
+                                        <span class="status" style="background:<?= e($est['bg_color']) ?>;color:<?= e($est['color']) ?>;"><?= e($est['icon']) ?> <?= e($est['nombre']) ?></span>
                                     <?php else: ?>
-                                        <span class="status" style="background:#fef3c7;color:#92400e;">⏳ Pendiente</span>
+                                        <span class="status" style="background:#fef3c7;color:#92400e;">⏳ Pendiente por evaluar</span>
                                     <?php endif; ?>
                                 </td>
                                 <td>

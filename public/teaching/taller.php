@@ -93,7 +93,7 @@ $flashError = flash('error');
                     </a>
 
                     <?php if ((int)($e['puntaje'] ?? -1) < 0 || $e['puntaje'] === null): ?>
-                        <form method="post" action="../src/core/delivery.php?action=evaluate" style="margin-top:.8rem;">
+                        <form method="post" action="../../src/core/delivery.php?action=evaluate" style="margin-top:.8rem;">
                             <?= csrf_field() ?>
                             <input type="hidden" name="entrega_id" value="<?= (int)$e['id_entrega'] ?>">
                             <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;">

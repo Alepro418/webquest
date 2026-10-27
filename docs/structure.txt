@@ -14,12 +14,18 @@
 |    └── structure.txt
 ├── /public
 |     ├── /css
+|     ├── /functions
 |     ├── /js
 |     ├── /student
-|     └── /teaching
-|
+|     ├── /teaching
+|     └── /uploads
+|           ├── /entregas
+|           ├── /profiles
+|           └── /recursos
 ├── /src
 |    ├── /core
+|    |     ├── /Contrrollers
+|    |     └── /Models
 |    └── /db
 ├── /template
 ├── .gitignore

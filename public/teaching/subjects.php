@@ -57,14 +57,14 @@ $flashError = flash('error');
                         <div class="subject-actions">
                             <a class="btn-sm" href="subject.php?id=<?= (int)$a['id_asignatura'] ?>">👁️ Ver</a>
                             <button class="btn-sm" onclick="editar(<?= (int)$a['id_asignatura'] ?>, '<?= e($a['titulo'], true) ?>', '<?= e($a['descripcion'], true) ?>', <?= (int)$a['grado'] ?>, '<?= e($a['seccion']) ?>', '<?= e($a['estado']) ?>')">✏️ Editar</button>
-                            <form method="post" action="../src/core/subject.php" style="display:inline;" onsubmit="return confirm('¿Publicar / guardar esta asignatura?')">
+                            <form method="post" action="../../src/core/subject.php" style="display:inline;" onsubmit="return confirm('¿Publicar / guardar esta asignatura?')">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="set_estado">
                                 <input type="hidden" name="id" value="<?= (int)$a['id_asignatura'] ?>">
                                 <input type="hidden" name="estado" value="<?= $a['estado'] === 'publicada' ? 'borrador' : 'publicada' ?>">
                                 <button class="btn-sm"><?= $a['estado'] === 'publicada' ? '📄 Borrador' : '✅ Publicar' ?></button>
                             </form>
-                            <form method="post" action="../src/core/subject.php" style="display:inline;" onsubmit="return confirm('¿Eliminar esta asignatura y sus talleres?')">
+                            <form method="post" action="../../src/core/subject.php" style="display:inline;" onsubmit="return confirm('¿Eliminar esta asignatura y sus talleres?')">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="id" value="<?= (int)$a['id_asignatura'] ?>">
                                 <input type="hidden" name="action" value="delete_subject">
@@ -84,7 +84,7 @@ $flashError = flash('error');
     <div class="modal" id="modal">
         <div class="modal-content">
             <h3 id="modalTitulo">Crear Asignatura</h3>
-            <form method="post" action="../src/core/subject.php">
+            <form method="post" action="../../src/core/subject.php">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="save_subject">
                 <input type="hidden" name="id" id="f_id" value="0">

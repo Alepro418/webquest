@@ -78,6 +78,28 @@ $flashSuccess = flash('success');
                     </div>
                 </div>
 
+                <!-- Fila 3: Cohorte del estudiante (Grado + Sección) -->
+                <div class="form-row" id="cohort-container">
+                    <div class="form-group">
+                        <label for="grado" class="required">Grado</label>
+                        <select id="grado" name="grado" required>
+                            <option value="" disabled selected>Elije tu grado</option>
+                            <?php foreach (Config::get('academic.grados', []) as $g): ?>
+                                <option value="<?= $g ?>"><?= $g ?>° Grado</option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="seccion" class="required">Sección</label>
+                        <select id="seccion" name="seccion" required>
+                            <option value="" disabled selected>Elije tu sección</option>
+                            <?php foreach (Config::get('academic.secciones', []) as $sec): ?>
+                                <option value="<?= $sec ?>">Sección <?= $sec ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Contenedor dinámico para las preguntas de seguridad (fuera del form-row) -->
                 <div id="security-container"></div>
 

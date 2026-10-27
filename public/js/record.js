@@ -49,6 +49,16 @@ function setRole(role) {
     const emailContainer    = document.getElementById('email-container');
     const securityContainer = document.getElementById('security-container');
 
+    // La cohorte (grado + sección) solo aplica a estudiantes
+    const cohortContainer = document.getElementById('cohort-container');
+    if (cohortContainer) {
+        cohortContainer.style.display = role === 'estudiante' ? '' : 'none';
+        cohortContainer.querySelectorAll('select').forEach(s => {
+            s.disabled = role !== 'estudiante';
+            s.required = role === 'estudiante';
+        });
+    }
+
     // Limpiar todo
     warningContainer.innerHTML  = '';
     emailContainer.innerHTML    = '';
@@ -105,7 +115,15 @@ function validateForm(event) {
         return true;
     }
 
-    // Estudiante: preguntas de seguridad
+    // Estudiante: cohorte y preguntas de seguridad
+    const grado   = document.getElementById('grado').value;
+    const seccion = document.getElementById('seccion').value;
+    if (!grado || !seccion) {
+        event.preventDefault();
+        alert('Debes seleccionar tu grado y sección.');
+        return false;
+    }
+
     const result = collectSecurityQuestions();
     if (!result.ok) {
         event.preventDefault();

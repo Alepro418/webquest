@@ -28,7 +28,7 @@ $flashError = flash('error');
 
             <section class="data-section">
                 <div class="table-header"><h2>🔒 Cambiar Contraseña</h2></div>
-                <form method="post" action="../src/core/auth.php?action=change_password">
+                <form method="post" action="../../src/core/auth.php?action=change_password">
                     <?= csrf_field() ?>
                     <div style="padding:1.2rem;max-width:520px;">
                         <div class="form-group">

@@ -112,13 +112,14 @@ $flashError = flash('error');
                             <?php else: ?>
                                 <details style="margin-top:.8rem;">
                                     <summary style="cursor:pointer;color:var(--primary);font-weight:600;">📤 Entregar evidencia</summary>
-                                    <form method="post" action="../src/core/delivery.php?action=submit" enctype="multipart/form-data" style="margin-top:.7rem;">
+                                    <form method="post" action="../../src/core/delivery.php?action=submit" enctype="multipart/form-data" style="margin-top:.7rem;">
                                         <?= csrf_field() ?>
                                         <input type="hidden" name="taller_id" value="<?= (int)$t['id_taller'] ?>">
                                         <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end;">
                                             <div style="flex:1;min-width:200px;">
                                                 <label style="font-weight:600;font-size:.85rem;">📸 Foto de tu libreta</label>
                                                 <input type="file" name="evidencia" accept="image/*" required>
+                                                <small style="color:#5a7a6a;display:block;margin-top:.3rem;">💡 Consejo: pon tu libreta sobre la mesa, tómale una foto desde arriba y con buena luz.</small>
                                             </div>
                                             <div style="flex:2;min-width:220px;">
                                                 <label style="font-weight:600;font-size:.85rem;">💬 Comentario (opcional)</label>

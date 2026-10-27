@@ -46,7 +46,7 @@ final class Entrega
     {
         return Database::rows(
             'SELECT et.*, u.nombre_completo AS estudiante_nombre, u.nombre_usuario,
-                    t.titulo AS taller_titulo, a.titulo AS asignatura_titulo, a.grado, a.seccion,
+                    t.titulo AS taller_titulo, a.id_asignatura, a.titulo AS asignatura_titulo, a.grado, a.seccion,
                     ev.id_evaluacion, ev.puntaje, ev.escala_letra, ev.estatus
              FROM Entregas_Taller et
              JOIN Talleres t ON t.id_taller = et.id_taller

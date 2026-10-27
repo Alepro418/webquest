@@ -49,6 +49,15 @@ final class AuthController
                 redirect(site_url('/public/sign_up.php'));
             }
         } else {
+            $grado   = (int)($input['grado'] ?? 0);
+            $seccion = strtoupper(substr(trim((string)($input['seccion'] ?? '')), 0, 1));
+            $grados    = Config::get('academic.grados', [1, 2, 3, 4, 5, 6]);
+            $secciones = Config::get('academic.secciones', ['A', 'B', 'C', 'D', 'E']);
+            if (!in_array($grado, $grados, true) || !in_array($seccion, $secciones, true)) {
+                flash('error', 'Debes seleccionar el grado y la sección de tu cohorte.');
+                redirect(site_url('/public/sign_up.php'));
+            }
+
             $q = [];
             for ($i = 1; $i <= 5; $i++) {
                 $pregunta  = (string)($input["pregunta{$i}"] ?? '');
@@ -69,7 +78,12 @@ final class AuthController
         $hash = password_hash($password, PASSWORD_ARGON2ID);
 
         try {
-            $id = Usuario::create($username, $hash, $role, $nombre, ['email' => $email ?? null]);
+            $extra = ['email' => $email ?? null];
+            if ($role === 'estudiante') {
+                $extra['grado'] = $grado;
+                $extra['seccion'] = $seccion;
+            }
+            $id = Usuario::create($username, $hash, $role, $nombre, $extra);
             if ($role === 'estudiante') {
                 PreguntaSeguridad::create($id, $q);
             }

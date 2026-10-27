@@ -102,7 +102,96 @@ final class Reporte
         ];
     }
 
-    /** Estatus motivacional completo (icono, colores, mensaje) según promedio. */
+    /**
+     * Cohortes (grado+sección) en los que imparte el docente.
+     */
+    public static function cohortesDeDocente(int $docenteId): array
+    {
+        return Database::rows(
+            'SELECT DISTINCT grado, seccion
+             FROM Asignaturas
+             WHERE id_docente = :d
+             ORDER BY grado, seccion',
+            [':d' => $docenteId]
+        );
+    }
+
+    /**
+     * Resumen GENERAL de una sección para el docente (todas sus asignaturas de la cohorte).
+     * Cada fila es un estudiante con totales y promedio global; si $estudianteId se indica,
+     * solo se devuelve ese estudiante con su desglose por asignatura.
+     */
+    public static function resumenSeccion(int $docenteId, int $grado, string $seccion, ?int $estudianteId = null): array
+    {
+        $subjects = Database::rows(
+            'SELECT * FROM Asignaturas
+             WHERE id_docente = :d AND grado = :g AND seccion = :s
+             ORDER BY titulo',
+            [':d' => $docenteId, ':g' => $grado, ':s' => $seccion]
+        );
+
+        $students = Usuario::studentsByGrade($grado, $seccion);
+        if ($estudianteId !== null) {
+            $students = array_values(array_filter($students, fn($s) => (int)$s['id_usuario'] === $estudianteId));
+        }
+        usort($students, fn($a, $b) => strcasecmp($a['nombre_completo'], $b['nombre_completo']));
+
+        $rows = [];
+        foreach ($students as $st) {
+            $row = [
+                'id_usuario'    => (int)$st['id_usuario'],
+                'nombre'        => $st['nombre_completo'],
+                'asignaturas'   => count($subjects),
+                'talleres'      => 0,
+                'entregados'    => 0,
+                'evaluados'     => 0,
+                'suma'          => 0.0,
+                'promedio'      => null,
+                'detalle'       => [],
+            ];
+
+            foreach ($subjects as $asig) {
+                $prog = self::progresoEstudianteEnAsignatura((int)$st['id_usuario'], $asig);
+                $row['talleres']   += $prog['total'];
+                $row['entregados'] += $prog['entregados'];
+                $row['evaluados']  += $prog['evaluados'];
+                foreach ($prog['talleres'] as $tall) {
+                    if ($tall['evaluacion'] !== null) {
+                        $row['suma'] += (float)$tall['evaluacion']['puntaje'];
+                    }
+                }
+                $row['detalle'][] = [
+                    'titulo'     => $asig['titulo'],
+                    'talleres'   => $prog['total'],
+                    'entregados' => $prog['entregados'],
+                    'evaluados'  => $prog['evaluados'],
+                    'promedio'   => $prog['promedio'],
+                ];
+            }
+
+            if ($row['evaluados'] > 0) {
+                $row['promedio'] = round($row['suma'] / $row['evaluados'], 1);
+            }
+            unset($row['suma']);
+            $rows[] = $row;
+        }
+
+        return ['subjects' => count($subjects), 'rows' => $rows];
+    }
+
+    /** Promedio de una sección (media de los promedios de estudiantes evaluados). */
+    public static function promedioSeccion(array $resumen): ?float
+    {
+        $proms = array_values(array_filter(array_column($resumen['rows'], 'promedio')));
+        if (count($proms) === 0) {
+            return null;
+        }
+        return round(array_sum($proms) / count($proms), 1);
+    }
+
+    /**
+     * Estatus motivacional completo (icono, colores, mensaje) según promedio.
+     */
     public static function estatusConfig(?float $promedio): array
     {
         $list = Config::get('academic.evaluation.status_motivacional', []);

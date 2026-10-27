@@ -113,7 +113,7 @@ if ($seccionFilter !== '') {
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <a href="reports.php?estudiante=<?= (int)$s['id_usuario'] ?>" class="btn-action">Ver Reporte</a>
+                                    <a href="reports.php?grado=<?= (int)$s['grado'] ?>&seccion=<?= e($s['seccion']) ?>&estudiante=<?= (int)$s['id_usuario'] ?>" class="btn-action">Ver Reporte</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
