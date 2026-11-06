@@ -3,6 +3,10 @@ declare(strict_types=1);
 
 /**
  * Reporte - Agregaciones y estadísticas para paneles y reportes.
+ *
+ * Todos los cálculos parten de un Proyecto de Aula (momento pedagógico), de
+ * modo que cada nota queda trazada a su PA, su periodo de fechas y su grado y
+ * sección.
  */
 final class Reporte
 {
@@ -15,7 +19,7 @@ final class Reporte
         $students = self::studentsByDocenteCohorte($docenteId);
 
         $totales = count($students);
-        $promedios = array_filter(array_column($students, 'promedio'));
+        $promedios = array_filter(array_column($students, 'promedio'), static fn($p) => $p !== null);
         $promedioGrupal = count($promedios) > 0 ? round(array_sum($promedios) / count($promedios), 1) : 0.0;
         $porMejorar = 0;
         foreach ($students as $s) {
@@ -29,7 +33,8 @@ final class Reporte
              FROM Entregas_Taller et
              JOIN Talleres t ON t.id_taller = et.id_taller
              JOIN Asignaturas a ON a.id_asignatura = t.id_asignatura
-             WHERE a.id_docente = :d AND DATE(et.fecha_envio) = CURDATE()',
+             JOIN Proyectos_Aula p ON p.id_proyecto = a.id_proyecto
+             WHERE p.id_docente = :d AND DATE(et.fecha_envio) = CURDATE()',
             [':d' => $docenteId]
         );
 
@@ -38,29 +43,34 @@ final class Reporte
             'entregas_hoy'      => $entregasHoy,
             'promedio_grupal'   => $promedioGrupal,
             'por_mejorar'       => $porMejorar,
-            'total_evaluadas'   => count(array_filter($promedios)),
+            'total_evaluadas'   => count($promedios),
         ];
     }
 
-    /** Estudiantes que pertenecen a las cohortes de las asignaturas del docente. */
+    /** Estudiantes que pertenecen a las cohortes de los PA del docente. */
     public static function studentsByDocenteCohorte(int $docenteId): array
     {
         $rows = Database::rows(
             'SELECT DISTINCT u.id_usuario, u.nombre_completo, u.grado, u.seccion
-             FROM Asignaturas a
-             JOIN Usuarios u ON u.rol = \'estudiante\' AND u.grado = a.grado AND u.seccion = a.seccion
-             WHERE a.id_docente = :d
+             FROM Proyectos_Aula p
+             JOIN Usuarios u ON u.rol = \'estudiante\' AND u.grado = p.grado AND u.seccion = p.seccion
+             WHERE p.id_docente = :d
              ORDER BY u.grado, u.seccion, u.nombre_completo',
             [':d' => $docenteId]
         );
 
         foreach ($rows as &$row) {
-            $avg = Evaluacion::promedioDeEstudiante((int)$row['id_usuario']);
+            $avg = Evaluacion::promedioDeEstudiante((int)$row['id_usuario'], $docenteId);
             $row['promedio'] = $avg;
             $row['estatus']  = $avg !== null ? Evaluacion::estatus($avg) : null;
             $row['entregas'] = (int) Database::scalar(
-                'SELECT COUNT(*) FROM Entregas_Taller WHERE id_estudiante = :s',
-                [':s' => (int)$row['id_usuario']]
+                'SELECT COUNT(*)
+                 FROM Entregas_Taller et
+                 JOIN Talleres t ON t.id_taller = et.id_taller
+                 JOIN Asignaturas a ON a.id_asignatura = t.id_asignatura
+                 JOIN Proyectos_Aula p ON p.id_proyecto = a.id_proyecto
+                 WHERE p.id_docente = :d AND et.id_estudiante = :s',
+                [':d' => $docenteId, ':s' => (int)$row['id_usuario']]
             );
         }
         unset($row);
@@ -68,8 +78,8 @@ final class Reporte
     }
 
     /**
-     * Progreso de un estudiante en una asignatura pública de su cohorte:
-     * talleres, entregados y promedio.
+     * Progreso de un estudiante en una asignatura:
+     * talleres, entregados, evaluados y promedio de esa asignatura.
      */
     public static function progresoEstudianteEnAsignatura(int $estudianteId, array $asignatura): array
     {
@@ -98,43 +108,34 @@ final class Reporte
             'total'       => count($talleres),
             'entregados'  => $entregados,
             'evaluados'   => $evaluados,
-            'promedio'    => $acumulado > 0 ? round($acumulado / $evaluados, 1) : null,
+            'promedio'    => $evaluados > 0 ? round($acumulado / $evaluados, 1) : null,
         ];
     }
 
-    /**
-     * Cohortes (grado+sección) en los que imparte el docente.
-     */
-    public static function cohortesDeDocente(int $docenteId): array
+    /** Proyectos de Aula del docente con sus métricas, para los selectores. */
+    public static function proyectosDeDocente(int $docenteId): array
     {
-        return Database::rows(
-            'SELECT DISTINCT grado, seccion
-             FROM Asignaturas
-             WHERE id_docente = :d
-             ORDER BY grado, seccion',
-            [':d' => $docenteId]
-        );
+        return ProyectoAula::byDocenteWithStats($docenteId);
     }
 
     /**
-     * Resumen GENERAL de una sección para el docente (todas sus asignaturas de la cohorte).
-     * Cada fila es un estudiante con totales y promedio global; si $estudianteId se indica,
+     * Resumen general de un Proyecto de Aula: una fila por estudiante con los
+     * totales de sus asignaturas en ese momento. Si $estudianteId se indica,
      * solo se devuelve ese estudiante con su desglose por asignatura.
      */
-    public static function resumenSeccion(int $docenteId, int $grado, string $seccion, ?int $estudianteId = null): array
+    public static function proyectoResumen(int $proyectoId, ?int $estudianteId = null): ?array
     {
-        $subjects = Database::rows(
-            'SELECT * FROM Asignaturas
-             WHERE id_docente = :d AND grado = :g AND seccion = :s
-             ORDER BY titulo',
-            [':d' => $docenteId, ':g' => $grado, ':s' => $seccion]
-        );
-
-        $students = Usuario::studentsByGrade($grado, $seccion);
-        if ($estudianteId !== null) {
-            $students = array_values(array_filter($students, fn($s) => (int)$s['id_usuario'] === $estudianteId));
+        $proyecto = ProyectoAula::find($proyectoId);
+        if ($proyecto === null) {
+            return null;
         }
-        usort($students, fn($a, $b) => strcasecmp($a['nombre_completo'], $b['nombre_completo']));
+
+        $subjects = Asignatura::byProyecto($proyectoId);
+        $students = Usuario::studentsByGrade((int)$proyecto['grado'], (string)$proyecto['seccion']);
+        if ($estudianteId !== null) {
+            $students = array_values(array_filter($students, static fn($s) => (int)$s['id_usuario'] === $estudianteId));
+        }
+        usort($students, static fn($a, $b) => strcasecmp($a['nombre_completo'], $b['nombre_completo']));
 
         $rows = [];
         foreach ($students as $st) {
@@ -161,32 +162,130 @@ final class Reporte
                     }
                 }
                 $row['detalle'][] = [
-                    'titulo'     => $asig['titulo'],
-                    'talleres'   => $prog['total'],
-                    'entregados' => $prog['entregados'],
-                    'evaluados'  => $prog['evaluados'],
-                    'promedio'   => $prog['promedio'],
+                    'id_asignatura' => (int)$asig['id_asignatura'],
+                    'titulo'        => $asig['titulo'],
+                    'talleres'      => $prog['total'],
+                    'entregados'    => $prog['entregados'],
+                    'evaluados'     => $prog['evaluados'],
+                    'promedio'      => $prog['promedio'],
                 ];
             }
 
+            $row['promedio_exacto'] = null;
             if ($row['evaluados'] > 0) {
-                $row['promedio'] = round($row['suma'] / $row['evaluados'], 1);
+                $exacto = $row['suma'] / $row['evaluados'];
+                $row['promedio_exacto'] = $exacto;
+                $row['promedio'] = round($exacto, 2);
             }
+            $row['porcentaje'] = self::porcentaje($row['entregados'], $row['talleres']);
             unset($row['suma']);
             $rows[] = $row;
         }
 
-        return ['subjects' => count($subjects), 'rows' => $rows];
+        return [
+            'proyecto'   => $proyecto,
+            'asignaturas' => $subjects,
+            'subjects'   => count($subjects),
+            'rows'       => $rows,
+            'total_talleres' => array_sum(array_column($rows, 'talleres')),
+        ];
     }
 
-    /** Promedio de una sección (media de los promedios de estudiantes evaluados). */
+    /** Totales de la sección para el pie del reporte grupal. */
+    public static function totalesGrupales(array $resumen): array
+    {
+        $rows = $resumen['rows'];
+        $talleres  = (int)array_sum(array_column($rows, 'talleres'));
+        $entregados = (int)array_sum(array_column($rows, 'entregados'));
+        $evaluados = (int)array_sum(array_column($rows, 'evaluados'));
+
+        return [
+            'asignaturas' => (int)array_sum(array_column($rows, 'asignaturas')),
+            'talleres'    => $talleres,
+            'entregados'  => $entregados,
+            'evaluados'   => $evaluados,
+            'porcentaje'  => self::porcentaje($entregados, $talleres),
+            'promedio'    => self::promedioSeccion($resumen),
+        ];
+    }
+
+    /** Promedio de la sección (media de los promedios de estudiantes evaluados). */
     public static function promedioSeccion(array $resumen): ?float
     {
-        $proms = array_values(array_filter(array_column($resumen['rows'], 'promedio')));
+        $proms = [];
+        foreach ($resumen['rows'] as $row) {
+            if (($row['promedio_exacto'] ?? null) !== null) {
+                $proms[] = (float)$row['promedio_exacto'];
+            } elseif (($row['promedio'] ?? null) !== null) {
+                $proms[] = (float)$row['promedio'];
+            }
+        }
         if (count($proms) === 0) {
             return null;
         }
-        return round(array_sum($proms) / count($proms), 1);
+        return round(array_sum($proms) / count($proms), 2);
+    }
+
+    /**
+     * Reporte individual de un estudiante dentro de un momento: sus
+     * asignaturas, sus talleres con estado y nota, el promedio del momento y
+     * el estatus motivacional.
+     */
+    public static function reporteIndividual(int $proyectoId, int $estudianteId): ?array
+    {
+        $resumen = self::proyectoResumen($proyectoId, $estudianteId);
+        if ($resumen === null) {
+            return null;
+        }
+
+        $alumno = $resumen['rows'][0] ?? null;
+        $talleres = [];
+
+        foreach ($resumen['asignaturas'] as $asig) {
+            $prog = self::progresoEstudianteEnAsignatura($estudianteId, $asig);
+            foreach ($prog['talleres'] as $t) {
+                $evaluacion = $t['evaluacion'];
+                $entrega = $t['entrega'];
+                if ($evaluacion !== null) {
+                    $estado = 'Evaluado';
+                } elseif ($entrega !== null) {
+                    $estado = 'Entregado';
+                } else {
+                    $estado = 'Sin entrega';
+                }
+                $talleres[] = [
+                    'asignatura'  => $asig['titulo'],
+                    'taller'      => $t['titulo'],
+                    'unidad'      => $t['unidad'],
+                    'fecha_limite' => $t['fecha_limite'],
+                    'estado'      => $estado,
+                    'puntaje'     => $evaluacion !== null ? (float)$evaluacion['puntaje'] : null,
+                    'escala'      => $evaluacion['escala_letra'] ?? null,
+                    'estatus'     => $evaluacion['estatus'] ?? null,
+                    'observaciones' => $evaluacion['observaciones'] ?? null,
+                ];
+            }
+        }
+
+        return [
+            'proyecto'    => $resumen['proyecto'],
+            'alumno'      => $alumno,
+            'asignaturas' => $resumen['asignaturas'],
+            'talleres'    => $talleres,
+            'promedio'    => $alumno['promedio'] ?? null,
+            'estatus'     => ($alumno !== null && $alumno['promedio'] !== null)
+                ? self::estatusConfig((float)$alumno['promedio'])
+                : null,
+        ];
+    }
+
+    /** Porcentaje entero de entregas realizadas. */
+    public static function porcentaje(int $parte, int $total): int
+    {
+        if ($total <= 0) {
+            return 0;
+        }
+        return (int)round($parte * 100 / $total);
     }
 
     /**
@@ -195,12 +294,14 @@ final class Reporte
     public static function estatusConfig(?float $promedio): array
     {
         $list = Config::get('academic.evaluation.status_motivacional', []);
-        foreach ($list as $nombre => $cfg) {
-            if ($promedio !== null && $promedio >= (float)$cfg['threshold']) {
-                return ['nombre' => $nombre] + (array)$cfg;
+        if ($promedio !== null) {
+            foreach ($list as $nombre => $cfg) {
+                if ($promedio >= (float)$cfg['threshold']) {
+                    return ['nombre' => $nombre] + (array)$cfg;
+                }
             }
         }
         $vacio = $list['Vamos a mejorar'] ?? ['icon' => '🌱', 'color' => '#9a3412', 'bg_color' => '#ffedd5', 'message' => ''];
-        return ['nombre' => 'Vamos a mejorar', 'promedio' => null] + (array)$vacio;
+        return ['nombre' => 'Vamos a mejorar'] + (array)$vacio;
     }
 }

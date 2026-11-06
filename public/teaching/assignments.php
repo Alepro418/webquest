@@ -71,6 +71,7 @@ $flashError = flash('error');
                     <thead>
                         <tr>
                             <th>Estudiante</th>
+                            <th>Momento</th>
                             <th>Asignatura</th>
                             <th>Taller</th>
                             <th>Fecha de Envío</th>
@@ -81,11 +82,12 @@ $flashError = flash('error');
                     </thead>
                     <tbody>
                         <?php if (count($entregas) === 0): ?>
-                            <tr><td colspan="7" style="text-align:center;color:#5a7a6a;">No hay entregas con los filtros actuales.</td></tr>
+                            <tr><td colspan="8" style="text-align:center;color:#5a7a6a;">No hay entregas con los filtros actuales.</td></tr>
                         <?php endif; ?>
                         <?php foreach ($entregas as $en): ?>
                             <tr>
                                 <td><strong><?= e($en['estudiante_nombre']) ?></strong><br><small style="color:#5a7a6a;">@<?= e($en['nombre_usuario']) ?></small></td>
+                                <td><?= e(ProyectoAula::momentoLabel((string)$en['momento'])) ?><br><small style="color:#5a7a6a;"><?= e($en['proyecto_titulo']) ?></small></td>
                                 <td><?= e($en['asignatura_titulo']) ?><br><small style="color:#5a7a6a;"><?= (int)$en['grado'] ?>° <?= e($en['seccion']) ?></small></td>
                                 <td><?= e($en['taller_titulo']) ?></td>
                                 <td><?= e(date('d/m/Y H:i', strtotime($en['fecha_envio']))) ?></td>

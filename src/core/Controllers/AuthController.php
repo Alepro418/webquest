@@ -126,6 +126,7 @@ final class AuthController
         Usuario::resetAttempts((int)$user['id_usuario']);
 
         session_regenerate_id(true);
+        unset($_SESSION['pa_activo']);
         $_SESSION['user'] = [
             'id'       => (int)$user['id_usuario'],
             'username' => $user['nombre_usuario'],

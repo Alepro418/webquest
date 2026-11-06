@@ -149,6 +149,10 @@
 | V-05 | Docente intenta crear contenido en un PA con estado `borrador` | ⛔ Bloquea hasta que el PA pase a estado `publicada`. |
 | V-06 | Docente intenta crear contenido en un PA con estado `cerrada` | ⛔ Bloquea (el momento ya terminó). |
 | V-07 | Docente publica el PA del 1er momento | ✅ Se habilita la creación de asignaturas y talleres. |
+| V-08 | Docente configura fechas del momento fuera del año escolar (ej. 10/01/2025 en el año 2025-2026) | ⛔ Rechaza la acción e indica el rango permitido del año escolar. |
+| V-09 | Docente intenta editar una asignatura o un taller de un PA en estado `borrador` o `cerrada` | ⛔ Bloquea la edición y muestra el enlace "Ir a Configuración". |
+| V-10 | Estudiante intenta entregar un taller fuera del periodo del PA o con el PA cerrado | ⛔ Rechaza la entrega e indica las fechas habilitadas del momento. |
+| V-11 | Docente cierra el PA del momento activo | ✅ El PA sigue seleccionado como momento de trabajo y la creación de contenido queda bloqueada hasta configurar el siguiente momento. |
 
 ---
 

@@ -3,6 +3,10 @@ declare(strict_types=1);
 
 /**
  * DeliveryController - Entrega de evidencias (estudiante) y evaluación (docente).
+ *
+ * Las entregas quedan limitadas al periodo activo del Proyecto de Aula: solo
+ * se aceptan mientras el PA esté publicado y la fecha actual esté dentro de
+ * su rango de inicio/fin (cambio.txt §4.2 y §8).
  */
 final class DeliveryController
 {
@@ -21,31 +25,49 @@ final class DeliveryController
             redirect(site_url('/public/student/subjects.php'));
         }
 
-        $asignatura = Asignatura::find((int)$taller['id_asignatura']);
-        if ($asignatura === null || $asignatura['estado'] !== 'publicada') {
+        $volver = site_url('/public/student/subject.php?id=' . (int)$taller['id_asignatura']);
+
+        if ($taller['asignatura_estado'] !== 'publicada') {
             flash('error', 'Este taller pertenece a una asignatura no publicada.');
-            redirect(site_url('/public/student/subjects.php'));
+            redirect($volver);
         }
+
+        // El Proyecto de Aula debe estar publicado y vigente para recibir entregas.
+        if ($taller['proyecto_estado'] === 'cerrada') {
+            flash('error', 'El Proyecto de Aula del ' . ProyectoAula::momentoLabel((string)$taller['momento']) . ' está cerrado: no se aceptan nuevas entregas.');
+            redirect($volver);
+        }
+        if ($taller['proyecto_estado'] !== 'publicada') {
+            flash('error', 'El Proyecto de Aula del ' . ProyectoAula::momentoLabel((string)$taller['momento']) . ' aún no está publicado.');
+            redirect($volver);
+        }
+        if (!ProyectoAula::enPeriodo($taller)) {
+            $inicio = $taller['fecha_inicio'] ? date('d/m/Y', strtotime((string)$taller['fecha_inicio'])) : '—';
+            $fin    = $taller['fecha_fin'] ? date('d/m/Y', strtotime((string)$taller['fecha_fin'])) : '—';
+            flash('error', "La entrega solo está habilitada dentro del periodo del Proyecto de Aula ({$inicio} - {$fin}).");
+            redirect($volver);
+        }
+
         // El estudiante solo accede a talleres de su cohorte
-        if ((int)$asignatura['grado'] !== (int)$user['grado'] || $asignatura['seccion'] !== $user['seccion']) {
+        if ((int)$taller['grado'] !== (int)$user['grado'] || $taller['seccion'] !== $user['seccion']) {
             flash('error', 'No tienes acceso a este taller.');
             redirect(site_url('/public/student/subjects.php'));
         }
 
         if (Entrega::byTallerAndStudent($tallerId, (int)$user['id']) !== null) {
             flash('error', 'Ya entregaste evidencia para este taller.');
-            redirect(site_url('/public/student/subject.php?id=' . $asignatura['id_asignatura']));
+            redirect($volver);
         }
 
         if (empty($files['evidencia']['name'])) {
             flash('error', 'Debes adjuntar una fotografía de tu libreta.');
-            redirect(site_url('/public/student/subject.php?id=' . $asignatura['id_asignatura']));
+            redirect($volver);
         }
 
         $result = Upload::save($files['evidencia'], Upload::ENTREGAS, true);
         if (!$result['ok']) {
             flash('error', $result['error']);
-            redirect(site_url('/public/student/subject.php?id=' . $asignatura['id_asignatura']));
+            redirect($volver);
         }
 
         Entrega::create((int)$user['id'], $tallerId, $result['path'], $comentario);
@@ -70,8 +92,7 @@ final class DeliveryController
         }
 
         $taller = Taller::find((int)$entrega['id_taller']);
-        $asignatura = Asignatura::find((int)$taller['id_asignatura']);
-        if ($asignatura === null || (int)$asignatura['id_docente'] !== (int)$user['id']) {
+        if ($taller === null || (int)$taller['id_docente'] !== (int)$user['id']) {
             flash('error', 'No tienes permiso para evaluar esta entrega.');
             redirect(site_url('/public/teaching/assignments.php'));
         }

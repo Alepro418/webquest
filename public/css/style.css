@@ -868,3 +868,172 @@ nav a.active {
 
 /* ===== TABLA DE ENTREGAS ===== */
 #tablaEntregas td { vertical-align: middle; }
+
+/* ===== PROYECTOS DE AULA (MOMENTOS PEDAGÓGICOS) ===== */
+.badge.cerrada { background: #fee2e2; color: #991b1b; }
+
+.pa-warning {
+    background: #fff8e1;
+    border: 1px solid #f9a825;
+    border-left: 6px solid #f9a825;
+    border-radius: 12px;
+    padding: 1.4rem 1.6rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.pa-warning h3 {
+    color: #bf360c;
+    font-size: 1.05rem;
+    letter-spacing: .5px;
+    margin-bottom: .5rem;
+}
+
+.pa-warning p { color: #4e342e; margin-bottom: 1rem; }
+
+.pa-warning .btn-primary { background: #bf360c; }
+.pa-warning .btn-primary:hover { background: #8c2508; }
+
+.pa-active {
+    background: var(--white);
+    border-radius: 14px;
+    border-left: 6px solid var(--primary);
+    padding: 1.4rem 1.6rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.pa-active-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.pa-active-head h2 { color: var(--sidebar-color); margin: .2rem 0; font-size: 1.35rem; }
+.pa-active-head p { color: #5a7a6a; margin: 0; font-size: .92rem; }
+
+.pa-eyebrow {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--primary);
+}
+
+.pa-active-meta {
+    display: flex;
+    gap: 1.4rem;
+    flex-wrap: wrap;
+    margin-top: .9rem;
+    font-size: .88rem;
+    color: #5a7a6a;
+}
+
+.pa-active-alert {
+    margin-top: 1rem;
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    color: #92400e;
+    padding: .7rem 1rem;
+    border-radius: 8px;
+    font-size: .9rem;
+}
+
+.pa-active-actions { display: flex; gap: .6rem; margin-top: 1rem; flex-wrap: wrap; align-items: center; }
+
+.rules-list { list-style: none; padding: 0; margin: 0; }
+.rules-list li {
+    padding: .55rem 0 .55rem 1.6rem;
+    position: relative;
+    color: #3a5a4a;
+    font-size: .92rem;
+    border-bottom: 1px dashed #e0eee0;
+}
+.rules-list li:last-child { border-bottom: none; }
+.rules-list li::before {
+    content: "✔";
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.pa-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.2rem;
+    margin-top: 1.2rem;
+}
+
+.pa-card {
+    background: #fafffa;
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 1.2rem 1.3rem;
+    display: flex;
+    flex-direction: column;
+    gap: .7rem;
+}
+
+.pa-card.activo {
+    border: 2px solid var(--primary);
+    background: #f1f8f1;
+}
+
+.pa-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: .8rem;
+}
+
+.pa-card-head h3 { color: var(--sidebar-color); font-size: 1.05rem; margin: 0; }
+.pa-sub { font-size: .82rem; color: #5a7a6a; }
+.pa-desc { font-size: .88rem; color: #5a7a6a; margin: 0; }
+
+.pa-meta {
+    display: flex;
+    gap: .9rem;
+    flex-wrap: wrap;
+    font-size: .8rem;
+    color: #5a7a6a;
+}
+
+.pa-actions {
+    display: flex;
+    gap: .4rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: auto;
+}
+
+.pa-actions form { display: inline; margin: 0; }
+
+.pa-empty {
+    text-align: center;
+    color: #5a7a6a;
+    padding: 1.4rem;
+    font-size: .92rem;
+}
+
+.pa-periodo {
+    font-size: .85rem;
+    color: #5a7a6a;
+}
+
+/* Aviso de acción bloqueada por falta de PA */
+.pa-lock {
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    color: #92400e;
+    border-radius: 10px;
+    padding: .9rem 1.2rem;
+    margin-bottom: 1.2rem;
+    font-size: .92rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}

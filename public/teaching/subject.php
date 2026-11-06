@@ -12,6 +12,11 @@ if ($subject === null || (int)$subject['id_docente'] !== (int)$user['id']) {
 $talleres  = Taller::byAsignatura($id);
 $recursos  = Recurso::byAsignatura($id);
 
+$pa      = ProyectoAula::find((int)$subject['id_proyecto']);
+$bloqueo = ProyectoAula::bloqueoContenido($pa);
+$puede   = $bloqueo === null;
+$mensaje = $bloqueo !== null ? ProyectoAula::mensajeBloqueo($bloqueo, 'taller') : null;
+
 $flashSuccess = flash('success');
 $flashError = flash('error');
 ?>
@@ -71,21 +76,42 @@ $flashError = flash('error');
                 <h1><?= e($subject['titulo']) ?></h1>
                 <p><?= e($subject['descripcion']) ?></p>
                 <div style="margin-top:.8rem;display:flex;gap:1.5rem;font-size:.9rem;color:#5a7a6a;flex-wrap:wrap;">
+                    <span>🗂️ <?= e(ProyectoAula::momentoLabel((string)$subject['momento'])) ?></span>
                     <span>🎓 <?= (int)$subject['grado'] ?>° <?= e($subject['seccion']) ?></span>
+                    <span>📅 <?= e(ProyectoAula::periodoTexto($subject)) ?></span>
                     <span>📝 <?= count($talleres) ?> Talleres</span>
                     <span>🔗 <?= count($recursos) ?> Recursos</span>
                     <span class="badge <?= $subject['estado'] === 'publicada' ? 'publicada' : 'borrador' ?>">
                         <?= $subject['estado'] === 'publicada' ? 'Publicada' : 'Borrador' ?>
                     </span>
+                    <?php if ($pa !== null): ?>
+                        <span class="badge <?= e($pa['estado']) ?>">PA: <?= e(ucfirst($pa['estado'])) ?></span>
+                    <?php endif; ?>
                 </div>
+                <?php if ($pa !== null): ?>
+                    <p style="margin:.6rem 0 0;font-size:.85rem;color:#5a7a6a;">
+                        Proyecto de Aula: <a href="pa.php#momento-<?= e($pa['momento']) ?>" style="color:var(--primary);"><?= e($pa['titulo']) ?></a>
+                    </p>
+                <?php endif; ?>
             </div>
 
             <!-- Talleres -->
             <section class="data-section">
                 <div class="table-header">
                     <h2>📝 Talleres</h2>
-                    <button class="btn-primary" onclick="abrirTaller()">➕ Nuevo Taller</button>
+                    <?php if ($puede): ?>
+                        <button class="btn-primary" onclick="abrirTaller()">➕ Nuevo Taller</button>
+                    <?php else: ?>
+                        <button class="btn-primary" disabled style="opacity:.5;cursor:not-allowed;">➕ Nuevo Taller</button>
+                    <?php endif; ?>
                 </div>
+
+                <?php if (!$puede): ?>
+                    <div class="pa-lock">
+                        <span>⚠️ <?= e((string)$mensaje) ?></span>
+                        <a class="btn-sm" href="pa.php">⚙️ Ir a Configuración</a>
+                    </div>
+                <?php endif; ?>
 
                 <?php if (count($talleres) === 0): ?>
                     <p style="color:#5a7a6a;text-align:center;">Sin talleres aún. Crea el primero para tus estudiantes.</p>
@@ -111,6 +137,7 @@ $flashError = flash('error');
                         </div>
                         <div style="display:flex;gap:.5rem;">
                             <a class="btn-sm" href="taller.php?id=<?= (int)$t['id_taller'] ?>">📥 Revisar Entregas</a>
+                            <?php if ($puede): ?>
                             <button class="btn-sm" onclick="abrirTaller(<?= (int)$t['id_taller'] ?>, '<?= e($t['titulo'], true) ?>', '<?= e($t['descripcion'], true) ?>', '<?= e((string)$t['unidad'], true) ?>', '<?= e((string)$t['fecha_limite'], true) ?>')">✏️</button>
                             <form method="post" action="../../src/core/subject.php" onsubmit="return confirm('¿Eliminar este taller y sus entregas?')">
                                 <?= csrf_field() ?>
@@ -118,6 +145,7 @@ $flashError = flash('error');
                                 <input type="hidden" name="id" value="<?= (int)$t['id_taller'] ?>">
                                 <button class="btn-sm" style="color:#b3261e;">🗑️</button>
                             </form>
+                            <?php endif; ?>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -161,6 +189,7 @@ $flashError = flash('error');
     </div>
 
     <!-- Modal Taller -->
+    <?php if ($puede): ?>
     <div class="modal" id="modalTaller">
         <div class="modal-content">
             <h3 id="tallerTitulo">Nuevo Taller</h3>
@@ -194,6 +223,7 @@ $flashError = flash('error');
             </form>
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- Modal Recurso -->
     <div class="modal" id="modalRecurso">

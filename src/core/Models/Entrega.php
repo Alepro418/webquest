@@ -46,14 +46,16 @@ final class Entrega
     {
         return Database::rows(
             'SELECT et.*, u.nombre_completo AS estudiante_nombre, u.nombre_usuario,
-                    t.titulo AS taller_titulo, a.id_asignatura, a.titulo AS asignatura_titulo, a.grado, a.seccion,
+                    t.titulo AS taller_titulo, a.id_asignatura, a.titulo AS asignatura_titulo,
+                    p.id_proyecto, p.titulo AS proyecto_titulo, p.momento, p.grado, p.seccion,
                     ev.id_evaluacion, ev.puntaje, ev.escala_letra, ev.estatus
              FROM Entregas_Taller et
              JOIN Talleres t ON t.id_taller = et.id_taller
              JOIN Asignaturas a ON a.id_asignatura = t.id_asignatura
+             JOIN Proyectos_Aula p ON p.id_proyecto = a.id_proyecto
              JOIN Usuarios u ON u.id_usuario = et.id_estudiante
              LEFT JOIN Evaluaciones ev ON ev.id_entrega = et.id_entrega
-             WHERE a.id_docente = :d
+             WHERE p.id_docente = :d
              ORDER BY et.fecha_envio DESC',
             [':d' => $docenteId]
         );
@@ -64,11 +66,13 @@ final class Entrega
     {
         return Database::rows(
             'SELECT et.*, t.titulo AS taller_titulo, t.fecha_limite,
-                    a.titulo AS asignatura_titulo, a.grado, a.seccion,
+                    a.titulo AS asignatura_titulo,
+                    p.id_proyecto, p.titulo AS proyecto_titulo, p.momento, p.grado, p.seccion,
                     ev.id_evaluacion, ev.puntaje, ev.escala_letra, ev.observaciones, ev.estatus, ev.fecha_evaluacion
              FROM Entregas_Taller et
              JOIN Talleres t ON t.id_taller = et.id_taller
              JOIN Asignaturas a ON a.id_asignatura = t.id_asignatura
+             JOIN Proyectos_Aula p ON p.id_proyecto = a.id_proyecto
              LEFT JOIN Evaluaciones ev ON ev.id_entrega = et.id_entrega
              WHERE et.id_estudiante = :s
              ORDER BY et.fecha_envio DESC',

@@ -5,6 +5,10 @@ $user = require_login('docente');
 $kpis    = Reporte::kpisDocente((int)$user['id']);
 $students = Reporte::studentsByDocenteCohorte((int)$user['id']);
 
+$paActivo = ProyectoAula::activo((int)$user['id']);
+$bloqueo  = ProyectoAula::bloqueoContenido($paActivo);
+$totalAsignaturas = count(Asignatura::byDocente((int)$user['id']));
+
 $gradoFilter = $_GET['grado'] ?? '';
 $seccionFilter = $_GET['seccion'] ?? '';
 if ($gradoFilter !== '') {
@@ -37,6 +41,33 @@ if ($seccionFilter !== '') {
             <?php endif; ?>
             <?php if ($msg = flash('error')): ?>
                 <div class="alert alert-error" style="background:#fee2e2;border-left:4px solid #ef4444;color:#991b1b;padding:0.8rem 1.2rem;border-radius:8px;margin-bottom:1.5rem;"><?= e($msg) ?></div>
+            <?php endif; ?>
+
+            <?php if ($paActivo === null): ?>
+                <div class="pa-warning">
+                    <h3>⚠️ ATENCIÓN</h3>
+                    <p>Para crear asignaturas y talleres, primero debes configurar un Proyecto de Aula para el momento pedagógico actual.</p>
+                    <a class="btn-primary" href="pa.php">⚙️ Ir a Configuración</a>
+                </div>
+            <?php else: ?>
+                <div class="pa-active">
+                    <div class="pa-active-head">
+                        <div>
+                            <span class="pa-eyebrow">MOMENTO ACTIVO</span>
+                            <h2><?= e(ProyectoAula::momentoLabel((string)$paActivo['momento'])) ?> · <?= e($paActivo['titulo']) ?></h2>
+                        </div>
+                        <span class="badge <?= e($paActivo['estado']) ?>"><?= e(ucfirst((string)$paActivo['estado'])) ?></span>
+                    </div>
+                    <div class="pa-active-meta">
+                        <span>🎓 <?= (int)$paActivo['grado'] ?>° "<?= e($paActivo['seccion']) ?>"</span>
+                        <span>📅 <?= e(ProyectoAula::periodoTexto($paActivo)) ?></span>
+                        <span>⏱️ <?= e(ProyectoAula::estadoPeriodo($paActivo)) ?></span>
+                        <span>📚 <?= $totalAsignaturas ?> asignaturas</span>
+                    </div>
+                    <?php if ($bloqueo !== null): ?>
+                        <p class="pa-active-alert">⛔ <?= e(ProyectoAula::mensajeBloqueo($bloqueo)) ?></p>
+                    <?php endif; ?>
+                </div>
             <?php endif; ?>
 
             <!-- Indicadores Clave de Rendimiento (KPI) -->
@@ -113,7 +144,13 @@ if ($seccionFilter !== '') {
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <a href="reports.php?grado=<?= (int)$s['grado'] ?>&seccion=<?= e($s['seccion']) ?>&estudiante=<?= (int)$s['id_usuario'] ?>" class="btn-action">Ver Reporte</a>
+                                    <?php
+                                        $mismaCohorte = $paActivo !== null
+                                            && (int)$paActivo['grado'] === (int)$s['grado']
+                                            && (string)$paActivo['seccion'] === (string)$s['seccion'];
+                                        $urlReporte = 'reports.php?' . ($mismaCohorte ? 'proyecto=' . (int)$paActivo['id_proyecto'] . '&' : '') . 'estudiante=' . (int)$s['id_usuario'];
+                                    ?>
+                                    <a href="<?= e($urlReporte) ?>" class="btn-action">Ver Reporte</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

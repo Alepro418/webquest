@@ -3,6 +3,11 @@ declare(strict_types=1);
 
 /**
  * SubjectController - Gestión docente de asignaturas, talleres y recursos.
+ *
+ * Toda la jerarquía depende del Proyecto de Aula: sin un PA en estado
+ * «publicada» para el momento correspondiente no se puede crear ni editar
+ * contenido (cambio.txt §5). Las asignaturas heredan grado, sección y momento
+ * del PA, por lo que el formulario de asignaturas ya no los solicita.
  */
 final class SubjectController
 {
@@ -14,17 +19,13 @@ final class SubjectController
         csrf_check();
         require_login('docente');
 
-        $id         = (int)($input['id'] ?? 0);
-        $titulo     = trim((string)($input['titulo'] ?? ''));
+        $id          = (int)($input['id'] ?? 0);
+        $titulo      = trim((string)($input['titulo'] ?? ''));
         $descripcion = trim((string)($input['descripcion'] ?? ''));
-        $grado      = (int)($input['grado'] ?? 0);
-        $seccion    = strtoupper(substr(trim((string)($input['seccion'] ?? 'A')), 0, 1));
-        $estado     = ($input['estado'] ?? 'borrador') === 'publicada' ? 'publicada' : 'borrador';
+        $estado      = ($input['estado'] ?? 'borrador') === 'publicada' ? 'publicada' : 'borrador';
 
         $maxTitle = (int)Config::get('academic.subject.max_title_length', 100);
         $minDesc  = (int)Config::get('academic.subject.min_description_length', 0);
-        $grados   = Config::get('academic.grados', [1, 2, 3, 4, 5, 6]);
-        $secciones = Config::get('academic.secciones', ['A', 'B', 'C', 'D', 'E']);
 
         if (mb_strlen($titulo) < 5 || mb_strlen($titulo) > $maxTitle) {
             flash('error', "El título debe tener entre 5 y {$maxTitle} caracteres.");
@@ -34,22 +35,20 @@ final class SubjectController
             flash('error', 'La descripción es demasiado corta.');
             redirect(site_url('/public/teaching/subjects.php'));
         }
-        if (!in_array($grado, $grados, true) || !in_array($seccion, $secciones, true)) {
-            flash('error', 'Grado o sección no válidos.');
-            redirect(site_url('/public/teaching/subjects.php'));
-        }
 
         if ($id > 0) {
-            $own = Asignatura::find($id);
-            if ($own === null || (int)$own['id_docente'] !== (int)$user['id']) {
+            $asignatura = Asignatura::find($id);
+            if ($asignatura === null || (int)$asignatura['id_docente'] !== (int)$user['id']) {
                 flash('error', 'No tienes permiso para editar esta asignatura.');
                 redirect(site_url('/public/teaching/subjects.php'));
             }
-            Asignatura::update($id, $titulo, $descripcion, $grado, $seccion, $estado);
+            self::exigirPAEditable((int)$asignatura['id_proyecto'], 'asignatura');
+            Asignatura::update($id, $titulo, $descripcion, $estado);
             flash('success', 'Asignatura actualizada correctamente.');
         } else {
-            $id = Asignatura::create($titulo, $descripcion, $grado, $seccion, $estado, (int)$user['id']);
-            flash('success', 'Asignatura creada correctamente.');
+            $pa = self::exigirPAActivo((int)$user['id'], 'asignatura');
+            Asignatura::create((int)$pa['id_proyecto'], $titulo, $descripcion, $estado);
+            flash('success', 'Asignatura creada correctamente en el PA «' . $pa['titulo'] . '».');
         }
         redirect(site_url('/public/teaching/subjects.php'));
     }
@@ -60,11 +59,14 @@ final class SubjectController
         require_login('docente');
 
         $id = (int)($input['id'] ?? 0);
-        $own = Asignatura::find($id);
-        if ($own === null || (int)$own['id_docente'] !== (int)$user['id']) {
+        $asignatura = Asignatura::find($id);
+        if ($asignatura === null || (int)$asignatura['id_docente'] !== (int)$user['id']) {
             flash('error', 'Asignatura no encontrada o sin permiso.');
             redirect(site_url('/public/teaching/subjects.php'));
         }
+
+        self::exigirPAEditable((int)$asignatura['id_proyecto'], 'asignatura');
+
         $estado = ($input['estado'] ?? '') === 'publicada' ? 'publicada' : 'borrador';
         Asignatura::setEstado($id, $estado);
         flash('success', $estado === 'publicada' ? 'Asignatura publicada.' : 'Asignatura guardada como borrador.');
@@ -77,8 +79,8 @@ final class SubjectController
         require_login('docente');
 
         $id = (int)($input['id'] ?? 0);
-        $own = Asignatura::find($id);
-        if ($own === null || (int)$own['id_docente'] !== (int)$user['id']) {
+        $asignatura = Asignatura::find($id);
+        if ($asignatura === null || (int)$asignatura['id_docente'] !== (int)$user['id']) {
             flash('error', 'Asignatura no encontrada o sin permiso.');
             redirect(site_url('/public/teaching/subjects.php'));
         }
@@ -95,17 +97,20 @@ final class SubjectController
         csrf_check();
         require_login('docente');
 
-        $id          = (int)($input['id'] ?? 0);
+        $id           = (int)($input['id'] ?? 0);
         $asignaturaId = (int)($input['asignatura_id'] ?? 0);
-        $titulo      = trim((string)($input['titulo'] ?? ''));
-        $descripcion = trim((string)($input['descripcion'] ?? ''));
-        $unidad      = trim((string)($input['unidad'] ?? ''));
-        $fechaLimite = trim((string)($input['fecha_limite'] ?? ''));
+        $titulo       = trim((string)($input['titulo'] ?? ''));
+        $descripcion  = trim((string)($input['descripcion'] ?? ''));
+        $unidad       = trim((string)($input['unidad'] ?? ''));
+        $fechaLimite  = trim((string)($input['fecha_limite'] ?? ''));
 
-        if (!self::owns($user, $asignaturaId)) {
+        $asignatura = Asignatura::find($asignaturaId);
+        if ($asignatura === null || (int)$asignatura['id_docente'] !== (int)$user['id']) {
             flash('error', 'No tienes permiso sobre esta asignatura.');
             redirect(site_url('/public/teaching/subjects.php'));
         }
+        self::exigirPAEditable((int)$asignatura['id_proyecto'], 'taller');
+
         if (mb_strlen($titulo) < 3) {
             flash('error', 'El título del taller debe tener al menos 3 caracteres.');
             redirect(site_url("/public/teaching/subject.php?id={$asignaturaId}"));
@@ -137,7 +142,7 @@ final class SubjectController
 
         $id = (int)($input['id'] ?? 0);
         $taller = Taller::find($id);
-        if ($taller === null || !self::owns($user, (int)$taller['id_asignatura'])) {
+        if ($taller === null || (int)$taller['id_docente'] !== (int)$user['id']) {
             flash('error', 'Taller no encontrado o sin permiso.');
             redirect(site_url('/public/teaching/subjects.php'));
         }
@@ -211,6 +216,32 @@ final class SubjectController
     // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------
+    /**
+     * Devuelve el PA activo y corta la petición con la advertencia oficial si
+     * el docente todavía no lo tiene configurado/publicado (cambio.txt §5.1).
+     */
+    private static function exigirPAActivo(int $docenteId, string $contexto): array
+    {
+        $pa = ProyectoAula::activo($docenteId);
+        $bloqueo = ProyectoAula::bloqueoContenido($pa);
+        if ($bloqueo !== null || $pa === null) {
+            flash('error', ProyectoAula::mensajeBloqueo($bloqueo ?? 'sin_pa', $contexto));
+            redirect(site_url('/public/teaching/pa.php'));
+        }
+        return $pa;
+    }
+
+    /** Exige que el PA dueño del contenido esté publicado antes de modificarlo. */
+    private static function exigirPAEditable(int $idProyecto, string $contexto): void
+    {
+        $pa = ProyectoAula::find($idProyecto);
+        $bloqueo = ProyectoAula::bloqueoContenido($pa);
+        if ($bloqueo !== null) {
+            flash('error', ProyectoAula::mensajeBloqueo($bloqueo, $contexto));
+            redirect(site_url('/public/teaching/pa.php'));
+        }
+    }
+
     private static function owns(array $user, int $asignaturaId): bool
     {
         $a = Asignatura::find($asignaturaId);

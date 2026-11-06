@@ -36,6 +36,7 @@ $entregas = Entrega::byStudent((int)$user['id']);
                 <table class="data-table">
                     <thead>
                         <tr>
+                            <th>Momento</th>
                             <th>Asignatura</th>
                             <th>Taller</th>
                             <th>Fecha de Envío</th>
@@ -47,6 +48,7 @@ $entregas = Entrega::byStudent((int)$user['id']);
                     <tbody>
                         <?php foreach ($entregas as $en): ?>
                             <tr>
+                                <td><?= e(ProyectoAula::momentoLabel((string)$en['momento'])) ?><br><small style="color:#5a7a6a;"><?= e($en['proyecto_titulo']) ?></small></td>
                                 <td><?= e($en['asignatura_titulo']) ?><br><small style="color:#5a7a6a;"><?= (int)$en['grado'] ?>° <?= e($en['seccion']) ?></small></td>
                                 <td><?= e($en['taller_titulo']) ?></td>
                                 <td><?= e(date('d/m/Y H:i', strtotime($en['fecha_envio']))) ?></td>

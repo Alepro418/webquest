@@ -97,6 +97,18 @@
     "academic": {
         "grados": [1, 2, 3, 4, 5, 6],
         "secciones": ["A", "B", "C", "D", "E"],
+        "momentos": {
+            "1": "1er momento",
+            "2": "2do momento",
+            "3": "3er momento"
+        },
+        "proyecto_aula": {
+            "min_titulo_length": 5,
+            "max_titulo_length": 150,
+            "anio_escolar_actual": "2025-2026",
+            "mes_inicio": 9,
+            "mes_fin": 7
+        },
         "evaluation": {
             "max_score": 20,
             "scales": {

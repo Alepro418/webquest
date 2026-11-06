@@ -1,7 +1,15 @@
 <?php
 /**
  * seed.php - Datos de demostración para la Webquest.
- * Uso: php seed.php  (desde la raíz del proyecto)
+ *
+ * Escenario: año escolar 2025-2026, 5° "A", un docente y cinco estudiantes.
+ *   - 1er momento: PA "Ecosistemas Terrestres" (publicado, 16/09/2025 - 15/12/2025)
+ *   - 2do momento: PA "El Cuerpo Humano" (borrador, 07/01/2026 - 31/03/2026)
+ *   - 3er momento: sin configurar (sirve para probar la validación del sistema)
+ *
+ * Uso:
+ *   mysql -u root -p webquest < src/db/schema.sql   (o schema2.sql)
+ *   php src/db/seed.php
  */
 declare(strict_types=1);
 
@@ -17,21 +25,6 @@ $hash = fn(string $p): string => password_hash($p, PASSWORD_ARGON2ID);
 // ---------------------------------------------------------------
 // Usuarios
 // ---------------------------------------------------------------
-$docente = [
-    'nombre_usuario' => 'profesor',
-    'password'       => $hash('Docente2026!'),
-    'rol'            => 'docente',
-    'nombre_completo'=> 'Juan Pérez',
-    'email'          => 'juan.perez@webquest.edu',
-];
-
-$estudiantes = [
-    ['maria',  'María García',  4, 'A'],
-    ['carlos', 'Carlos Ruiz',   4, 'A'],
-    ['luis',   'Luis Pineda',   4, 'A'],
-    ['ana',    'Ana Torres',    4, 'A'],
-];
-
 $insertUsuario = static function (PDO $db, array $u) : int {
     $stmt = $db->prepare(
         'INSERT INTO Usuarios (nombre_usuario, password, rol, nombre_completo, email, grado, seccion)
@@ -49,20 +42,33 @@ $insertUsuario = static function (PDO $db, array $u) : int {
     return (int)$db->lastInsertId();
 };
 
-$idDocente = $insertUsuario($db, $docente);
+$idDocente = $insertUsuario($db, [
+    'nombre_usuario'  => 'Manuel',
+    'password'        => $hash('Docente2026!'),
+    'rol'             => 'docente',
+    'nombre_completo' => 'Manuel Gónzales',
+    'email'           => 'manuelzales03@gmail.com',
+]);
+
+$estudiantes = [
+    ['Barbara', 'Barbara Araujo',    5, 'A'],
+    ['Daniel',  'Daniel Moreno',     5, 'A'],
+    ['Pedro',   'Pedro Castillo',    5, 'A'],
+    ['Sandra',  'Sandra Carrasquero',5, 'A'],
+    ['Miguel',  'Miguel Suarez',     5, 'A'],
+];
 
 $idEstudiantes = [];
 $passEstudiante = $hash('Estudiante2026!');
 foreach ($estudiantes as [$user, $nombre, $grado, $seccion]) {
-    $id = $insertUsuario($db, [
-        'nombre_usuario' => $user,
-        'password'       => $passEstudiante,
-        'rol'            => 'estudiante',
-        'nombre_completo'=> $nombre,
-        'grado'          => $grado,
-        'seccion'        => $seccion,
+    $idEstudiantes[$user] = $insertUsuario($db, [
+        'nombre_usuario'  => $user,
+        'password'        => $passEstudiante,
+        'rol'             => 'estudiante',
+        'nombre_completo' => $nombre,
+        'grado'           => $grado,
+        'seccion'         => $seccion,
     ]);
-    $idEstudiantes[$user] = $id;
 }
 
 // ---------------------------------------------------------------
@@ -94,35 +100,80 @@ foreach ($idEstudiantes as $idE) {
 }
 
 // ---------------------------------------------------------------
-// Asignaturas
+// Proyectos de Aula (momentos pedagógicos)
 // ---------------------------------------------------------------
-$insertAsignatura = static function (PDO $db, string $titulo, string $desc, int $grado, string $seccion, string $estado, int $docente) : int {
+$insertProyecto = static function (PDO $db, array $p) : int {
     $stmt = $db->prepare(
-        'INSERT INTO Asignaturas (titulo, descripcion, grado, seccion, estado, id_docente)
-         VALUES (:t, :d, :g, :s, :e, :doc)'
+        'INSERT INTO Proyectos_Aula
+            (titulo, descripcion, momento, anio_escolar, grado, seccion, id_docente, fecha_inicio, fecha_fin, estado)
+         VALUES (:t, :d, :m, :a, :g, :s, :doc, :fi, :ff, :e)'
     );
-    $stmt->execute([':t'=>$titulo, ':d'=>$desc, ':g'=>$grado, ':s'=>$seccion, ':e'=>$estado, ':doc'=>$docente]);
+    $stmt->execute([
+        ':t' => $p['titulo'],
+        ':d' => $p['descripcion'],
+        ':m' => $p['momento'],
+        ':a' => $p['anio_escolar'],
+        ':g' => $p['grado'],
+        ':s' => $p['seccion'],
+        ':doc' => $p['id_docente'],
+        ':fi' => $p['fecha_inicio'],
+        ':ff' => $p['fecha_fin'],
+        ':e' => $p['estado'],
+    ]);
     return (int)$db->lastInsertId();
 };
 
-$asigCN = $insertAsignatura(
-    $db,
-    'Ciencias Naturales - 4to',
-    'Seres vivos, ecosistemas y cuerpo humano',
-    4, 'A', 'publicada', $idDocente
-);
+$pa1 = $insertProyecto($db, [
+    'titulo'        => 'Ecosistemas Terrestres',
+    'descripcion'   => 'Proyecto de Aula orientado al estudio de los ecosistemas terrestres, sus componentes bióticos y abióticos, y su importancia para la vida en el planeta.',
+    'momento'       => '1',
+    'anio_escolar'  => '2025-2026',
+    'grado'         => 5,
+    'seccion'       => 'A',
+    'id_docente'    => $idDocente,
+    'fecha_inicio'  => '2025-09-16',
+    'fecha_fin'     => '2025-12-15',
+    'estado'        => 'publicada',
+]);
 
-$asigAgua = $insertAsignatura(
-    $db,
-    'El Ciclo del Agua',
-    'Evaporación, condensación y precipitación',
-    4, 'A', 'borrador', $idDocente
-);
+$pa2 = $insertProyecto($db, [
+    'titulo'        => 'El Cuerpo Humano',
+    'descripcion'   => 'Proyecto de Aula orientado al estudio de los sistemas del cuerpo humano y su cuidado.',
+    'momento'       => '2',
+    'anio_escolar'  => '2025-2026',
+    'grado'         => 5,
+    'seccion'       => 'A',
+    'id_docente'    => $idDocente,
+    'fecha_inicio'  => '2026-01-07',
+    'fecha_fin'     => '2026-03-31',
+    'estado'        => 'borrador',
+]);
 
 // ---------------------------------------------------------------
-// Talleres
+// Asignaturas del 1er momento
 // ---------------------------------------------------------------
-$insertTaller = static function (PDO $db, int $asignatura, string $titulo, string $desc, ?string $unidad, string $limite) : int {
+$insertAsignatura = static function (PDO $db, int $proyecto, string $titulo, string $desc, string $estado) : int {
+    $stmt = $db->prepare(
+        'INSERT INTO Asignaturas (id_proyecto, titulo, descripcion, estado)
+         VALUES (:p, :t, :d, :e)'
+    );
+    $stmt->execute([':p' => $proyecto, ':t' => $titulo, ':d' => $desc, ':e' => $estado]);
+    return (int)$db->lastInsertId();
+};
+
+$asigEcosistema = $insertAsignatura($db, $pa1, 'Componentes del Ecosistema',
+    'Estudio de los componentes bióticos y abióticos de un ecosistema terrestre.', 'publicada');
+$asigAgua = $insertAsignatura($db, $pa1, 'El Ciclo del Agua',
+    'Análisis de las fases del ciclo hidrológico y su importancia para la vida.', 'publicada');
+$asigCadenas = $insertAsignatura($db, $pa1, 'Cadenas Alimenticias',
+    'Identificación de productores, consumidores y descomponedores en un ecosistema.', 'publicada');
+$asigFotosintesis = $insertAsignatura($db, $pa1, 'La Fotosíntesis',
+    'Proceso mediante el cual las plantas transforman la energía solar en energía química.', 'publicada');
+
+// ---------------------------------------------------------------
+// Talleres (uno por asignatura)
+// ---------------------------------------------------------------
+$insertTaller = static function (PDO $db, int $asignatura, string $titulo, string $desc, string $unidad, string $limite) : int {
     $stmt = $db->prepare(
         'INSERT INTO Talleres (id_asignatura, titulo, descripcion, unidad, fecha_limite)
          VALUES (:a, :t, :d, :u, :l)'
@@ -131,15 +182,16 @@ $insertTaller = static function (PDO $db, int $asignatura, string $titulo, strin
     return (int)$db->lastInsertId();
 };
 
-$talleres = [];
-$t = $insertTaller($db, $asigCN, 'Ecosistemas', 'Identifica los elementos de un ecosistema', '1', '2026-07-10');
-$talleres[1] = $t;
-$t = $insertTaller($db, $asigCN, 'Cadena Alimenticia', 'Dibuja una cadena alimenticia de tu región', '2', '2026-07-17');
-$talleres[2] = $t;
-$t = $insertTaller($db, $asigCN, 'La Célula', 'Dibuja y señala las partes de una célula animal', '3', '2026-07-24');
-$talleres[3] = $t;
-$t = $insertTaller($db, $asigCN, 'Experimentos', 'Realiza un experimento de germinación', '4', '2026-07-31');
-$talleres[4] = $t;
+$talleres = [
+    1 => $insertTaller($db, $asigEcosistema, 'Mapa conceptual del ecosistema',
+        'Elaborar en la libreta un mapa conceptual con los componentes bióticos y abióticos de un ecosistema terrestre.', '1', '2025-09-30'),
+    2 => $insertTaller($db, $asigAgua, 'Dibujo del ciclo del agua',
+        'Realizar un dibujo del ciclo del agua etiquetando cada fase: evaporación, condensación, precipitación e infiltración.', '2', '2025-10-31'),
+    3 => $insertTaller($db, $asigCadenas, 'Dos cadenas alimenticias',
+        'Construir 2 cadenas alimenticias (una terrestre y una acuática) e indicar el rol de cada organismo.', '3', '2025-11-15'),
+    4 => $insertTaller($db, $asigFotosintesis, 'Esquema de la fotosíntesis',
+        'Explicar el proceso de la fotosíntesis mediante un esquema y una breve redacción.', '4', '2025-12-10'),
+];
 
 // ---------------------------------------------------------------
 // Recursos
@@ -151,12 +203,18 @@ $insertRecurso = static function (PDO $db, int $asignatura, string $titulo, stri
     $stmt->execute([':a'=>$asignatura, ':t'=>$titulo, ':tp'=>$tipo, ':u'=>$url]);
 };
 
-$insertRecurso($db, $asigCN, 'Video: El ecosistema', 'video', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
-$insertRecurso($db, $asigCN, 'Guía: La célula vegetal', 'documento', 'public/uploads/recursos/guia-celula.pdf');
-$insertRecurso($db, $asigCN, 'Enlace: Ciclo del agua', 'enlace', 'https://es.wikipedia.org/wiki/Ciclo_del_agua');
+$insertRecurso($db, $asigEcosistema, 'Video: Ecosistemas terrestres explicados', 'video', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+$insertRecurso($db, $asigEcosistema, 'Enlace: Factores bióticos y abióticos', 'enlace', 'https://es.wikipedia.org/wiki/Ecosistema');
+$insertRecurso($db, $asigEcosistema, 'Documento: Guía de ecosistemas de Venezuela', 'documento', 'public/uploads/recursos/guia-ecosistemas.pdf');
+$insertRecurso($db, $asigAgua, 'Video: El ciclo del agua en 3 minutos', 'video', 'https://www.youtube.com/watch?v=al-do-HGuIk');
+$insertRecurso($db, $asigAgua, 'Enlace: USGS - Water Cycle', 'enlace', 'https://www.usgs.gov/special-topics/water-science-school');
+$insertRecurso($db, $asigCadenas, 'Video: Cadenas y redes tróficas', 'video', 'https://www.youtube.com/watch?v=8eY0nM6Ho3Y');
+$insertRecurso($db, $asigCadenas, 'Documento: Ejercicios de cadenas alimenticias', 'documento', 'public/uploads/recursos/ejercicios-cadenas.pdf');
+$insertRecurso($db, $asigFotosintesis, 'Video: Fotosíntesis paso a paso', 'video', 'https://www.youtube.com/watch?v=sQK3Yr4Sc_k');
+$insertRecurso($db, $asigFotosintesis, 'Enlace: Khan Academy - Fotosíntesis', 'enlace', 'https://es.khanacademy.org/science/biology');
 
 // ---------------------------------------------------------------
-// Entregas y Evaluaciones
+// Entregas y Evaluaciones (19 de 20 talleres entregados)
 // ---------------------------------------------------------------
 $insertEntrega = static function (PDO $db, int $estudiante, int $taller, string $ruta, ?string $comentario, string $fecha) : int {
     $stmt = $db->prepare(
@@ -178,28 +236,44 @@ $insertEvaluacion = static function (PDO $db, int $entrega, float $puntaje, stri
 $EVA = fn(float $p): string => $p >= 18 ? 'Sobresaliente' : ($p >= 12 ? 'Buen estudiante' : 'Vamos a mejorar');
 $LET = fn(float $p): string => $p >= 18 ? 'A' : ($p >= 15 ? 'B' : ($p >= 12 ? 'C' : 'D'));
 
-// Maria
-$e = $insertEntrega($db, $idEstudiantes['maria'], $talleres[1], 'public/uploads/entregas/maria-ecosistemas.jpg', 'Adjunto mi trabajo sobre los ecosistemas.', '2026-06-28 10:30:00');
-$insertEvaluacion($db, $e, 19, $LET(19), 'Excelente trabajo, muy bien ilustrado', $EVA(19));
+// [usuario, taller, ruta, comentario, fecha_envio, puntaje|null, observaciones]
+$entregas = [
+    ['Barbara', 1, 'public/uploads/entregas/barbara-ecosistema.jpg', 'Mapa conceptual del bosque tropical.', '2025-09-28 10:30:00', 20.0, 'Mapa conceptual impecable, con colores y excelente ortografía.'],
+    ['Barbara', 2, 'public/uploads/entregas/barbara-agua.jpg', 'Ciclo del agua completo.', '2025-10-29 09:12:00', 19.0, 'Dibujo detallado, etiquetas claras y explicación completa de cada fase.'],
+    ['Barbara', 3, 'public/uploads/entregas/barbara-cadenas.jpg', 'Cadena terrestre y acuática.', '2025-11-14 14:45:00', 19.0, 'Ambas cadenas correctas con 4 eslabones y análisis del impacto.'],
+    ['Barbara', 4, 'public/uploads/entregas/barbara-fotosintesis.jpg', 'Esquema con fórmula química.', '2025-12-09 16:10:00', 20.0, 'Esquema impecable, fórmula química correcta y excelente redacción.'],
 
-$e = $insertEntrega($db, $idEstudiantes['maria'], $talleres[2], 'public/uploads/entregas/maria-cadena.jpg', 'Cadena alimenticia de mi región.', '2026-07-05 09:12:00');
-$insertEvaluacion($db, $e, 18, $LET(18), 'Muy buen análisis, sigue así', $EVA(18));
+    ['Daniel', 1, 'public/uploads/entregas/daniel-ecosistema.jpg', 'Componentes bióticos y abióticos.', '2025-09-29 16:20:00', 19.0, 'Mapa conceptual completo, con colores y buena ortografía.'],
+    ['Daniel', 2, 'public/uploads/entregas/daniel-agua.jpg', 'Dibujo de las cuatro fases.', '2025-10-29 11:00:00', 18.0, 'Dibujo detallado, etiquetas claras y buena redacción.'],
+    ['Daniel', 3, 'public/uploads/entregas/daniel-cadenas.jpg', 'Cadenas con cinco eslabones.', '2025-11-14 08:02:00', 19.0, 'Ambas cadenas correctas, análisis profundo del impacto.'],
+    ['Daniel', 4, 'public/uploads/entregas/daniel-fotosintesis.jpg', 'Esquema y redacción.', '2025-12-09 13:33:00', 19.0, 'Esquema muy completo, fórmula química correcta y explicación clara.'],
 
-$e = $insertEntrega($db, $idEstudiantes['maria'], $talleres[3], 'public/uploads/entregas/maria-celula.jpg', 'Célula animal señalada.', '2026-07-18 14:45:00');
+    ['Pedro', 1, 'public/uploads/entregas/pedro-ecosistema.jpg', 'Mapa del desierto.', '2025-09-30 09:40:00', 17.0, 'Buen mapa, aunque faltó un factor abiótico y uso de colores.'],
+    ['Pedro', 2, 'public/uploads/entregas/pedro-agua.jpg', 'Ciclo del agua.', '2025-10-30 10:15:00', 16.0, 'Dibujo correcto, pero faltó explicar la infiltración con detalle.'],
+    ['Pedro', 3, 'public/uploads/entregas/pedro-cadenas.jpg', 'Cadenas alimenticias.', '2025-11-13 15:20:00', 17.0, 'Cadenas completas y bien explicadas, sin análisis del impacto.'],
+    ['Pedro', 4, 'public/uploads/entregas/pedro-fotosintesis.jpg', 'Esquema de la fotosíntesis.', '2025-12-08 17:05:00', 18.0, 'Esquema muy completo con fórmula química y buena redacción.'],
 
-// Carlos
-$e = $insertEntrega($db, $idEstudiantes['carlos'], $talleres[1], 'public/uploads/entregas/carlos-ecosistemas.jpg', 'Aquí está mi ecosistema.', '2026-06-29 16:20:00');
-$insertEvaluacion($db, $e, 14, $LET(14), 'Bien, pero falta nombrar los productores', $EVA(14));
+    ['Sandra', 1, 'public/uploads/entregas/sandra-ecosistema.jpg', 'Mapa conceptual.', '2025-09-30 18:00:00', 14.0, 'Faltaron colores y solo incluyó 2 factores bióticos.'],
+    ['Sandra', 2, 'public/uploads/entregas/sandra-agua.jpg', 'Ciclo del agua básico.', '2025-10-31 12:45:00', 12.0, 'Dibujo básico, faltaron etiquetas en 2 fases.'],
+    ['Sandra', 3, 'public/uploads/entregas/sandra-cadenas.jpg', 'Dos cadenas.', '2025-11-15 09:30:00', 15.0, 'Cadenas correctas, pero sin análisis del impacto.'],
+    ['Sandra', 4, 'public/uploads/entregas/sandra-fotosintesis.jpg', 'Esquema incompleto.', '2025-12-10 11:00:00', 13.0, 'Esquema incompleto, faltó la fórmula química.'],
 
-$e = $insertEntrega($db, $idEstudiantes['carlos'], $talleres[2], 'public/uploads/entregas/carlos-cadena.jpg', 'Mi cadena alimenticia.', '2026-07-06 11:00:00');
+    ['Miguel', 1, 'public/uploads/entregas/miguel-ecosistema.jpg', 'Primera entrega.', '2025-09-30 20:10:00', 10.0, 'Mapa incompleto, sin colores ni ejemplos.'],
+    ['Miguel', 2, 'public/uploads/entregas/miguel-agua.jpg', 'Dibujo del ciclo.', '2025-10-31 20:05:00', 8.0, 'Dibujo muy básico y sin explicaciones.'],
+    ['Miguel', 3, 'public/uploads/entregas/miguel-cadenas.jpg', 'Una cadena.', '2025-11-15 19:50:00', 11.0, 'Solo una cadena y sin roles definidos.'],
+    // Taller 4: Miguel no entregó (queda como "Sin entrega" en el reporte).
+];
 
-// Luis
-$e = $insertEntrega($db, $idEstudiantes['luis'], $talleres[1], 'public/uploads/entregas/luis-ecosistemas.jpg', 'Primera entrega.', '2026-07-01 08:02:00');
-$insertEvaluacion($db, $e, 10, $LET(10), 'Recuerda revisar los conceptos básicos, puedes mejorar', $EVA(10));
+foreach ($entregas as [$usuario, $nTaller, $ruta, $comentario, $fecha, $puntaje, $observaciones]) {
+    $entregaId = $insertEntrega($db, $idEstudiantes[$usuario], $talleres[$nTaller], $ruta, $comentario, $fecha);
+    if ($puntaje !== null) {
+        $insertEvaluacion($db, $entregaId, $puntaje, $LET($puntaje), $observaciones, $EVA($puntaje));
+    }
+}
 
-// Ana
-$e = $insertEntrega($db, $idEstudiantes['ana'], $talleres[2], 'public/uploads/entregas/ana-cadena.jpg', 'Cadena alimenticia marina.', '2026-07-04 13:33:00');
-$insertEvaluacion($db, $e, 16, $LET(16), 'Muy bien, buen detalle en los descomponedores', $EVA(16));
-
-echo "Seed completado. Docente: profesor | Contraseña: Docente2026!\n";
-echo "Estudiantes (maria, carlos, luis, ana) | Contraseña: Estudiante2026!\n";
+echo "Seed completado.\n";
+echo "  Docente:    Manuel / Docente2026!\n";
+echo "  Estudiantes (5° A): Barbara, Daniel, Pedro, Sandra, Miguel / Estudiante2026!\n";
+echo "  1er momento: PA 'Ecosistemas Terrestres' (publicado) con 4 asignaturas y 4 talleres.\n";
+echo "  2do momento: PA 'El Cuerpo Humano' (borrador).\n";
+echo "  3er momento: sin configurar.\n";

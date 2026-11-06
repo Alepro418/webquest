@@ -1,7 +1,11 @@
 -- ============================================================
 -- WEBQUEST - CIENCIAS NATURALES
 -- Esquema de base de datos (Modelo Entidad-Relación)
--- Versión 2.1 - FKs separadas para compatibilidad con phpMyAdmin
+-- Versión 2.2 - Proyectos de Aula por Momento Pedagógico
+-- FKs separadas (ALTER TABLE) para compatibilidad con phpMyAdmin
+--
+-- Equivalente a schema.sql. Jerarquía:
+--   Proyectos_Aula -> Asignaturas -> Talleres -> Entregas_Taller -> Evaluaciones
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS webquest

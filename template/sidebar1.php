@@ -7,9 +7,12 @@ $user = current_user();
 $base = webroot_url();
 
 $navItems = [];
+$paActivo = null;
 if ($user !== null && $user['rol'] === 'docente') {
+    $paActivo = ProyectoAula::activo((int)$user['id']);
     $navItems = [
         ['index.php', 'Panel General'],
+        ['pa.php', 'Proyecto de Aula'],
         ['subjects.php', 'Asignaturas'],
         ['assignments.php', 'Entregas'],
         ['reports.php', 'Reportes'],
@@ -35,6 +38,15 @@ $currentFile = basename($_SERVER['PHP_SELF'] ?? '');
             <div class="avatar-mini"><?= e(strtoupper(substr($user['nombre'], 0, 2))) ?></div>
             <div class="sidebar-user-name"><?= e($user['nombre']) ?></div>
             <div class="sidebar-user-role"><?= $user['rol'] === 'docente' ? '👨‍🏫 Docente' : '🎒 Estudiante' ?></div>
+            <?php if ($user['rol'] === 'docente'): ?>
+                <div class="sidebar-user-role" style="color:#fbbf24;margin-top:.35rem;">
+                    <?php if ($paActivo !== null): ?>
+                        <?= e(ProyectoAula::momentoLabel((string)$paActivo['momento'])) ?> · <?= e(ucfirst($paActivo['estado'])) ?>
+                    <?php else: ?>
+                        ⚠️ Sin PA configurado
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 

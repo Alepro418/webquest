@@ -80,29 +80,64 @@ final class Evaluacion
     }
 
     /** Promedio de un estudiante (o null si no tiene evaluaciones). */
-    public static function promedioDeEstudiante(int $estudianteId): ?float
+    public static function promedioDeEstudiante(int $estudianteId, ?int $docenteId = null): ?float
     {
-        $v = Database::scalar(
-            'SELECT AVG(ev.puntaje)
-             FROM Evaluaciones ev JOIN Entregas_Taller et ON et.id_entrega = ev.id_entrega
-             WHERE et.id_estudiante = :s',
-            [':s' => $estudianteId]
-        );
+        if ($docenteId === null) {
+            $v = Database::scalar(
+                'SELECT AVG(ev.puntaje)
+                 FROM Evaluaciones ev JOIN Entregas_Taller et ON et.id_entrega = ev.id_entrega
+                 WHERE et.id_estudiante = :s',
+                [':s' => $estudianteId]
+            );
+        } else {
+            $v = Database::scalar(
+                'SELECT AVG(ev.puntaje)
+                 FROM Evaluaciones ev
+                 JOIN Entregas_Taller et ON et.id_entrega = ev.id_entrega
+                 JOIN Talleres t ON t.id_taller = et.id_taller
+                 JOIN Asignaturas a ON a.id_asignatura = t.id_asignatura
+                 JOIN Proyectos_Aula p ON p.id_proyecto = a.id_proyecto
+                 WHERE et.id_estudiante = :s AND p.id_docente = :d',
+                [':s' => $estudianteId, ':d' => $docenteId]
+            );
+        }
         return $v === null || $v === false ? null : round((float)$v, 1);
     }
 
-    public static function lastByStudent(int $estudianteId, int $limit): array
+    /** Promedio de un estudiante dentro de un Proyecto de Aula (momento). */
+    public static function promedioEnProyecto(int $estudianteId, int $proyectoId): ?float
     {
-        return Database::rows(
-            'SELECT ev.puntaje, ev.escala_letra, ev.estatus, ev.observaciones, ev.fecha_evaluacion,
-                    t.titulo AS taller_titulo, a.titulo AS asignatura_titulo
+        $v = Database::scalar(
+            'SELECT AVG(ev.puntaje)
              FROM Evaluaciones ev
              JOIN Entregas_Taller et ON et.id_entrega = ev.id_entrega
              JOIN Talleres t ON t.id_taller = et.id_taller
              JOIN Asignaturas a ON a.id_asignatura = t.id_asignatura
-             WHERE et.id_estudiante = :s
-             ORDER BY ev.fecha_evaluacion DESC LIMIT ' . max(1, (int)$limit),
-            [':s' => $estudianteId]
+             WHERE et.id_estudiante = :s AND a.id_proyecto = :p',
+            [':s' => $estudianteId, ':p' => $proyectoId]
         );
+        return $v === null || $v === false ? null : round((float)$v, 1);
+    }
+
+    public static function lastByStudent(int $estudianteId, int $limit, ?int $proyectoId = null): array
+    {
+        $sql =
+            'SELECT ev.puntaje, ev.escala_letra, ev.estatus, ev.observaciones, ev.fecha_evaluacion,
+                    t.titulo AS taller_titulo, a.titulo AS asignatura_titulo,
+                    p.titulo AS proyecto_titulo, p.momento
+             FROM Evaluaciones ev
+             JOIN Entregas_Taller et ON et.id_entrega = ev.id_entrega
+             JOIN Talleres t ON t.id_taller = et.id_taller
+             JOIN Asignaturas a ON a.id_asignatura = t.id_asignatura
+             JOIN Proyectos_Aula p ON p.id_proyecto = a.id_proyecto
+             WHERE et.id_estudiante = :s';
+        $params = [':s' => $estudianteId];
+        if ($proyectoId !== null) {
+            $sql .= ' AND a.id_proyecto = :p';
+            $params[':p'] = $proyectoId;
+        }
+        $sql .= ' ORDER BY ev.fecha_evaluacion DESC LIMIT ' . max(1, (int)$limit);
+
+        return Database::rows($sql, $params);
     }
 }

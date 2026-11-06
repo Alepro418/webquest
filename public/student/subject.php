@@ -5,6 +5,7 @@ $user = require_login('estudiante');
 $id = (int)($_GET['id'] ?? 0);
 $asignatura = Asignatura::find($id);
 if ($asignatura === null || $asignatura['estado'] !== 'publicada'
+    || !in_array($asignatura['proyecto_estado'], ['publicada', 'cerrada'], true)
     || (int)$asignatura['grado'] !== (int)$user['grado'] || $asignatura['seccion'] !== $user['seccion']) {
     flash('error', 'Asignatura no disponible para tu cohorte.');
     redirect(site_url('/public/student/subjects.php'));
@@ -12,6 +13,22 @@ if ($asignatura === null || $asignatura['estado'] !== 'publicada'
 
 $prog = Reporte::progresoEstudianteEnAsignatura((int)$user['id'], $asignatura);
 $recursos = Recurso::byAsignatura($id);
+
+$proyecto = ProyectoAula::find((int)$asignatura['id_proyecto']);
+$entregaAbierta = $proyecto !== null
+    && $proyecto['estado'] === 'publicada'
+    && ProyectoAula::enPeriodo($proyecto);
+$avisoEntrega = null;
+if ($proyecto !== null) {
+    if ($proyecto['estado'] === 'cerrada') {
+        $avisoEntrega = 'El Proyecto de Aula de este momento está cerrado: ya no se aceptan nuevas entregas.';
+    } elseif ($proyecto['estado'] !== 'publicada') {
+        $avisoEntrega = 'El Proyecto de Aula de este momento aún no está publicado.';
+    } elseif (!ProyectoAula::enPeriodo($proyecto)) {
+        $avisoEntrega = 'Las entregas solo se reciben dentro del periodo del Proyecto de Aula ('
+            . ProyectoAula::periodoTexto($proyecto) . ').';
+    }
+}
 
 $flashSuccess = flash('success');
 $flashError = flash('error');
@@ -57,11 +74,18 @@ $flashError = flash('error');
                 <h2 style="margin:0;color:var(--sidebar-color);"><?= e($asignatura['titulo']) ?></h2>
                 <p style="color:#5a7a6a;margin:.4rem 0 0;"><?= e($asignatura['descripcion']) ?></p>
                 <div style="margin-top:.8rem;display:flex;gap:1.5rem;flex-wrap:wrap;font-size:.9rem;color:#5a7a6a;">
+                    <span>🗂️ <?= e(ProyectoAula::momentoLabel((string)$asignatura['momento'])) ?> · <?= e($asignatura['proyecto_titulo']) ?></span>
                     <span>👨‍🏫 <?= e($asignatura['docente_nombre']) ?></span>
+                    <span>📅 <?= e(ProyectoAula::periodoTexto($asignatura)) ?></span>
                     <span>📝 <?= $prog['total'] ?> Talleres</span>
                     <span>📤 <?= $prog['entregados'] ?>/<?= $prog['total'] ?> Entregados</span>
                     <span>⭐ <?= $prog['promedio'] !== null ? number_format($prog['promedio'], 1) : '—' ?>/20</span>
                 </div>
+                <?php if ($avisoEntrega !== null): ?>
+                    <p class="pa-lock" style="margin:1rem 0 0;">⚠️ <?= e($avisoEntrega) ?></p>
+                <?php elseif ($entregaAbierta): ?>
+                    <p class="pa-periodo" style="margin:.9rem 0 0;">✅ Entregas habilitadas hasta el <?= e(date('d/m/Y', strtotime((string)$proyecto['fecha_fin']))) ?>.</p>
+                <?php endif; ?>
             </div>
 
             <section class="data-section">
@@ -107,7 +131,9 @@ $flashError = flash('error');
                         <?php if ($evaluado): ?>
                             <p style="margin:.6rem 0 0;font-size:.85rem;color:#5a7a6a;">💬 <?= e($t['evaluacion']['observaciones'] ?? '') ?></p>
                         <?php elseif (!$entregado): ?>
-                            <?php if ($vencido): ?>
+                            <?php if (!$entregaAbierta): ?>
+                                <p style="margin:.8rem 0 0;color:#92400e;font-size:.88rem;">🔒 No puedes entregar: <?= e((string)$avisoEntrega) ?></p>
+                            <?php elseif ($vencido): ?>
                                 <p style="margin:.8rem 0 0;color:#b3261e;font-size:.88rem;">⚠️ El plazo de entrega venció. Consulta a tu docente.</p>
                             <?php else: ?>
                                 <details style="margin-top:.8rem;">

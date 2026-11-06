@@ -76,10 +76,11 @@ $pendientes = count(array_filter($entregas, fn($e) => $e['puntaje'] === null));
                         <div class="subject-card">
                             <div class="subject-header">
                                 <h3 class="subject-title"><?= e($s['titulo']) ?></h3>
-                                <span class="badge publicada"><?= (int)$s['grado'] ?>° <?= e($s['seccion']) ?></span>
+                                <span class="badge <?= $s['proyecto_estado'] === 'cerrada' ? 'cerrada' : 'publicada' ?>"><?= e(ProyectoAula::momentoLabel((string)$s['momento'])) ?></span>
                             </div>
                             <p style="color:#64748b;font-size:.9rem;"><?= e($s['descripcion']) ?></p>
                             <div class="subject-meta">
+                                <span>🗂️ <?= e($s['proyecto_titulo']) ?></span>
                                 <span>📝 <?= $prog['total'] ?> Talleres</span>
                                 <span>📤 <?= $prog['entregados'] ?>/<?= $prog['total'] ?> Entregados</span>
                                 <span>⭐ <?= $prog['promedio'] !== null ? number_format($prog['promedio'], 1) : '—' ?>/20</span>
