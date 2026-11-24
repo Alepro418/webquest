@@ -84,6 +84,14 @@
             "documents": ["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx"],
             "videos": ["mp4", "webm", "ogg"]
         },
+        "evidence": {
+            "max_file_size": 20971520,
+            "min_width": 160,
+            "min_height": 120,
+            "max_width": 0,
+            "max_height": 0,
+            "allowed_mimes": ["image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp", "image/x-ms-bmp"]
+        },
         "image_validation": {
             "min_width": 480,
             "min_height": 360,

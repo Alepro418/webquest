@@ -64,7 +64,8 @@ final class DeliveryController
             redirect($volver);
         }
 
-        $result = Upload::save($files['evidencia'], Upload::ENTREGAS, true);
+        // Las fotos de evidencia usan límites flexibles (tamaño, resolución y formatos).
+        $result = Upload::saveEvidence($files['evidencia']);
         if (!$result['ok']) {
             flash('error', $result['error']);
             redirect($volver);

@@ -26,7 +26,7 @@
 
 | # | Nombre completo | Usuario | Contraseña |
 |---|-----------------|---------|------------|
-| 1 | Daniel Moreno | `Daniel` | `dqQ6(rLe!` |
+| 1 | Daniel Moreno | `Daniel` | `dqQ6(rLe` |
 | 2 | Barbara Araujo | `Rawr💜` | `T4s69)1QVt5` |
 | 3 | Sandra Carrasquero | `Sandra` | `7meRVd4iX)` |
 | 4 | Miguel Suarez | `Miguel` | `KA27KjEo)N` |
@@ -116,8 +116,8 @@
 | Año escolar | 2025–2026 |
 | Grado y sección | 5° "A" |
 | Docente responsable | Manuel Gónzales |
-| Fecha de inicio | 16/09/2025 |
-| Fecha de fin | 15/12/2025 |
+| Fecha de inicio | 07/11/2026 |
+| Fecha de fin | 19/11/2026 |
 | Estado | 🟢 Publicada |
 | Asignaturas asociadas | 4 (ver sección 4) |
 | Talleres asociados | 4 (ver sección 5) |
@@ -182,7 +182,7 @@
   - Escritura manuscrita.
   - Usar colores para diferenciar componentes.
   - Extensión mínima: 1 página.
-- **Fecha límite:** 30/09/2025
+- **Fecha límite:** 21/11/2026
 - **Recursos:**
   - 📹 Video: "Ecosistemas terrestres explicados"
   - 🔗 Enlace: "Factores bióticos y abióticos – National Geographic"

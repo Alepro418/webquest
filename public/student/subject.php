@@ -30,6 +30,8 @@ if ($proyecto !== null) {
     }
 }
 
+$evidenciaMaxMb = round((int)Config::get('uploads.evidence.max_file_size', 20 * 1024 * 1024) / 1048576);
+
 $flashSuccess = flash('success');
 $flashError = flash('error');
 ?>
@@ -144,8 +146,8 @@ $flashError = flash('error');
                                         <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end;">
                                             <div style="flex:1;min-width:200px;">
                                                 <label style="font-weight:600;font-size:.85rem;">📸 Foto de tu libreta</label>
-                                                <input type="file" name="evidencia" accept="image/*" required>
-                                                <small style="color:#5a7a6a;display:block;margin-top:.3rem;">💡 Consejo: pon tu libreta sobre la mesa, tómale una foto desde arriba y con buena luz.</small>
+                                                <input type="file" name="evidencia" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,.jpg,.jpeg,.png,.webp,.gif,.bmp" required>
+                                                <small style="color:#5a7a6a;display:block;margin-top:.3rem;">💡 Cualquier foto sirve: JPG, PNG, WEBP, GIF o BMP de hasta <?= $evidenciaMaxMb ?> MB. Pon tu libreta sobre la mesa, tómale la foto desde arriba y con buena luz.</small>
                                             </div>
                                             <div style="flex:2;min-width:220px;">
                                                 <label style="font-weight:600;font-size:.85rem;">💬 Comentario (opcional)</label>
